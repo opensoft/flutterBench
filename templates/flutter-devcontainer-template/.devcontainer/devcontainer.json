@@ -9,13 +9,11 @@
   },
 
   "onCreateCommand": {
-    "dependencies": "flutter pub get",
-    "precache": "flutter precache"
+    "check-flutter-project": "if [ -f pubspec.yaml ]; then echo '📦 Flutter project detected, installing dependencies...' && flutter pub get && flutter precache; else echo '⚠️  No pubspec.yaml found - skipping Flutter commands. Run \'flutter create <app_name>\' to create a Flutter project.'; fi"
   },
 
   "postStartCommand": {
-    "doctor": "flutter doctor",
-    "devices": "adb devices"
+    "flutter-status": "if [ -f pubspec.yaml ]; then flutter doctor && echo '📱 Checking connected devices:' && adb devices; else echo '💡 To create a Flutter project: flutter create <app_name>'; fi"
   },
 
   "postAttachCommand": "echo '✅ Ready to develop!' && adb devices",
