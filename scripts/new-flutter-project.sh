@@ -3,9 +3,12 @@
 PROJECT_NAME=$1
 TARGET_DIR=$2
 
-if [ -z "$PROJECT_NAME" ] || [ -z "$TARGET_DIR" ]; then
-    echo "Usage: ./new-flutter-project.sh <project-name> <target-directory>"
-    echo "Example: ./new-flutter-project.sh myapp ../../Dartwingers"
+# Validate project name is provided
+if [ -z "$PROJECT_NAME" ]; then
+    echo "Usage: ./new-flutter-project.sh <project-name> [target-directory]"
+    echo "Examples:"
+    echo "  ./new-flutter-project.sh myapp                    # Creates ~/projects/myapp"
+    echo "  ./new-flutter-project.sh myapp ../../Dartwingers  # Creates ../../Dartwingers/myapp"
     echo ""
     echo "This script will:"
     echo "  1. Create a new Flutter project using 'flutter create'"
@@ -14,6 +17,34 @@ if [ -z "$PROJECT_NAME" ] || [ -z "$TARGET_DIR" ]; then
     echo "  4. Set up Docker configuration for shared ADB infrastructure"
     echo ""
     exit 1
+fi
+
+# If no target directory specified, default to ~/projects/<project-name>
+if [ -z "$TARGET_DIR" ]; then
+    TARGET_DIR="$HOME/projects"
+    PROJECT_PATH="$TARGET_DIR/$PROJECT_NAME"
+    
+    # Check if project already exists
+    if [ -d "$PROJECT_PATH" ]; then
+        echo "❌ Error: Project already exists at $PROJECT_PATH"
+        echo "Please choose a different project name or remove the existing project."
+        exit 1
+    fi
+    
+    # Create the target directory if it doesn't exist
+    if [ ! -d "$TARGET_DIR" ]; then
+        echo "📁 Creating projects directory: $TARGET_DIR"
+        mkdir -p "$TARGET_DIR"
+    fi
+else
+    PROJECT_PATH="$TARGET_DIR/$PROJECT_NAME"
+    
+    # Check if project already exists in specified directory
+    if [ -d "$PROJECT_PATH" ]; then
+        echo "❌ Error: Project already exists at $PROJECT_PATH"
+        echo "Please choose a different project name or remove the existing project."
+        exit 1
+    fi
 fi
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -26,8 +57,8 @@ if [ ! -d "$TEMPLATE_DIR" ]; then
     exit 1
 fi
 
-# Validate target directory exists
-if [ ! -d "$TARGET_DIR" ]; then
+# Validate target directory exists (only if explicitly provided)
+if [ ! -z "$2" ] && [ ! -d "$TARGET_DIR" ]; then
     echo "❌ Error: Target directory $TARGET_DIR does not exist"
     echo "Please create the directory first or use a valid path."
     exit 1
@@ -41,7 +72,7 @@ if ! command -v flutter &> /dev/null; then
 fi
 
 echo "📦 Creating Flutter project: $PROJECT_NAME"
-echo "📍 Target directory: $TARGET_DIR"
+echo "📍 Project path: $PROJECT_PATH"
 
 # Create Flutter project
 cd "$TARGET_DIR"
@@ -105,10 +136,10 @@ echo "# DevContainer" >> .gitignore
 echo ".devcontainer/docker-compose.override.yml" >> .gitignore
 
 echo ""
-echo "✅ Project created successfully: $TARGET_DIR/$PROJECT_NAME"
+echo "✅ Project created successfully: $PROJECT_PATH"
 echo ""
 echo "📝 Next steps:"
-echo "   1. cd $TARGET_DIR/$PROJECT_NAME"
+echo "   1. cd $PROJECT_PATH"
 echo "   2. code ."
 echo "   3. When prompted, click 'Reopen in Container'"
 echo "   4. Wait for container build (first time: ~5-10 minutes)"
@@ -132,9 +163,9 @@ echo "   - USER_UID=$CURRENT_UID (in .env)"
 echo "   - USER_GID=$CURRENT_GID (in .env)"
 echo "   - FLUTTER_VERSION=3.24.0 (in .env)"
 echo ""
-echo "📝 Next steps:"
+echo "📝 Quick start:"
 echo "   1. Review and customize .env file if needed"
-echo "   2. cd $TARGET_DIR/$PROJECT_NAME"
+echo "   2. cd $PROJECT_PATH"
 echo "   3. code ."
 echo "   4. When prompted, click 'Reopen in Container'"
 echo ""
