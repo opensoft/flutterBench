@@ -1,6 +1,6 @@
 # Compose project name for Docker Desktop grouping (set in .env)
 # This groups all containers under the same stack name
-name: ${COMPOSE_PROJECT_NAME:-flutter}
+name: ${COMPOSE_PROJECT_NAME:-dartwingers}
 
 services:
   app:
@@ -29,6 +29,7 @@ services:
       - ANDROID_HOME=${ANDROID_HOME:-/home/vscode/android-sdk}
       - FLUTTER_PUB_CACHE=${FLUTTER_PUB_CACHE:-/home/vscode/.pub-cache}
       - DEBUG_MODE=${DEBUG_MODE:-false}
+      - SERVICE_API_URL=http://service:5000  # Connect to .NET service
     
     # Network configuration
     networks:
@@ -62,6 +63,52 @@ services:
     
     # Restart policy
     restart: unless-stopped
+    
+    # Service dependencies
+    depends_on:
+      - service
+
+  service:
+    image: mcr.microsoft.com/dotnet/sdk:8.0
+    container_name: ${PROJECT_NAME:-myproject}_service
+    
+    # Runtime environment variables
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:5000
+      - ASPNETCORE_HTTP_PORTS=5000
+    
+    # Network configuration
+    networks:
+      - dartnet
+    
+    # Volume mounts for .NET service code
+    volumes:
+      # Mount a service directory if it exists, otherwise create empty volume
+      - service-code:/app
+      # Persist .NET packages cache
+      - dotnet-nuget-cache:/root/.nuget/packages
+    
+    # Port mappings for .NET service
+    ports:
+      - "${SERVICE_PORT:-5000}:5000"       # .NET Web API
+      - "${SERVICE_DEBUG_PORT:-5001}:5001" # HTTPS (optional)
+    
+    # Resource limits (optional)
+    deploy:
+      resources:
+        limits:
+          memory: ${SERVICE_MEMORY:-2g}
+          cpus: '${SERVICE_CPUS:-1}'
+    
+    # Working directory
+    working_dir: /app
+    
+    # Keep container running for development
+    command: tail -f /dev/null
+    
+    # Restart policy
+    restart: unless-stopped
 
 # External network (managed by shared infrastructure)
 networks:
@@ -76,3 +123,7 @@ volumes:
     name: flutter-pub-cache-${PROJECT_NAME:-myproject}
   flutter-gradle-cache:
     name: flutter-gradle-cache-${PROJECT_NAME:-myproject}
+  service-code:
+    name: service-code-${PROJECT_NAME:-myproject}
+  dotnet-nuget-cache:
+    name: dotnet-nuget-cache-${PROJECT_NAME:-myproject}

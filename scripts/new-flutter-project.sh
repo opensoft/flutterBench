@@ -107,17 +107,27 @@ CURRENT_UID=$(id -u)
 CURRENT_GID=$(id -g)
 CURRENT_USER=$(whoami)
 
-# Replace PROJECT_NAME and user settings in .env
+# Detect stack naming based on parent directory
+PARENT_DIR_NAME=$(basename "$TARGET_DIR")
+if [[ "$PARENT_DIR_NAME" == "dartwingers" ]]; then
+    COMPOSE_PROJECT_NAME="dartwingers"
+else
+    COMPOSE_PROJECT_NAME="flutter"
+fi
+
+# Replace PROJECT_NAME, user settings, and stack naming in .env
 if [[ "$OSTYPE" == "darwin"* ]]; then
     # macOS
     sed -i '' "s/PROJECT_NAME=myproject/PROJECT_NAME=$PROJECT_NAME/g" .env
     sed -i '' "s/USER_UID=1000/USER_UID=$CURRENT_UID/g" .env
     sed -i '' "s/USER_GID=1000/USER_GID=$CURRENT_GID/g" .env
+    sed -i '' "s/COMPOSE_PROJECT_NAME=flutter/COMPOSE_PROJECT_NAME=$COMPOSE_PROJECT_NAME/g" .env
 else
     # Linux
     sed -i "s/PROJECT_NAME=myproject/PROJECT_NAME=$PROJECT_NAME/g" .env
     sed -i "s/USER_UID=1000/USER_UID=$CURRENT_UID/g" .env
     sed -i "s/USER_GID=1000/USER_GID=$CURRENT_GID/g" .env
+    sed -i "s/COMPOSE_PROJECT_NAME=flutter/COMPOSE_PROJECT_NAME=$COMPOSE_PROJECT_NAME/g" .env
 fi
 
 # Note: devcontainer.json no longer needs PROJECT_NAME replacement since it uses .env
@@ -150,7 +160,8 @@ echo "      - Run 'flutter doctor'"
 echo "      - Check ADB device connection"
 echo ""
 echo "🔧 Configuration summary:"
-echo "   - Container name: $PROJECT_NAME-dev"
+echo "   - Container name: ${PROJECT_NAME}_app"
+echo "   - Stack name: $COMPOSE_PROJECT_NAME"
 echo "   - Network: dartnet (shared)"
 echo "   - ADB server: shared-adb-server:5037"
 echo "   - Infrastructure path: $INFRA_PATH"
@@ -159,6 +170,7 @@ echo "   - Environment file: .env (customized from .env.example)"
 echo ""
 echo "⚙️  Environment configuration:"
 echo "   - PROJECT_NAME=$PROJECT_NAME (in .env)"
+echo "   - COMPOSE_PROJECT_NAME=$COMPOSE_PROJECT_NAME (in .env)"
 echo "   - USER_UID=$CURRENT_UID (in .env)"
 echo "   - USER_GID=$CURRENT_GID (in .env)"
 echo "   - FLUTTER_VERSION=3.24.0 (in .env)"
