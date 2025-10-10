@@ -115,16 +115,63 @@ CURRENT_UID=$(id -u)
 CURRENT_GID=$(id -g)
 CURRENT_USER=$(whoami)
 
-# Detect stack naming based on project path
-# Check if the target path contains 'dartwingers' anywhere
+# Prompt user for ADB infrastructure stack preference
+echo ""
+echo "🎯 ADB Infrastructure Stack Selection:"
+echo ""
+echo "  1) dartwingers - For Dartwingers organization projects"
+echo "  2) flutter - For general Flutter development"
+echo "  3) shared-adb-infrastructure - Default fallback"
+echo "  4) auto-detect - Based on project path (previous behavior)"
+echo ""
+
+# Default based on project path for auto-detect
 if [[ "$TARGET_DIR" == *"/dartwingers"* ]] || [[ "$TARGET_DIR" == *"/dartwingers/"* ]]; then
-    COMPOSE_PROJECT_NAME="dartwingers"
-# Also check immediate parent for backward compatibility
+    DEFAULT_STACK="dartwingers"
 elif [[ "$(basename "$TARGET_DIR")" == "dartwingers" ]]; then
-    COMPOSE_PROJECT_NAME="dartwingers"
+    DEFAULT_STACK="dartwingers"
 else
-    COMPOSE_PROJECT_NAME="flutter"
+    DEFAULT_STACK="flutter"
 fi
+
+while true; do
+    read -p "Choose ADB stack (1-4, or press Enter for auto-detect): " stack_choice
+    
+    # Default to auto-detect if no choice
+    if [ -z "$stack_choice" ]; then
+        stack_choice=4
+    fi
+    
+    case $stack_choice in
+        1)
+            COMPOSE_PROJECT_NAME="dartwingers"
+            ADB_INFRASTRUCTURE_PROJECT_NAME="dartwingers"
+            echo "📦 Selected: dartwingers stack"
+            break
+            ;;
+        2)
+            COMPOSE_PROJECT_NAME="flutter"
+            ADB_INFRASTRUCTURE_PROJECT_NAME="flutter"
+            echo "📦 Selected: flutter stack"
+            break
+            ;;
+        3)
+            COMPOSE_PROJECT_NAME="flutter"
+            ADB_INFRASTRUCTURE_PROJECT_NAME="shared-adb-infrastructure"
+            echo "📦 Selected: shared-adb-infrastructure stack"
+            break
+            ;;
+        4)
+            COMPOSE_PROJECT_NAME="$DEFAULT_STACK"
+            ADB_INFRASTRUCTURE_PROJECT_NAME="$DEFAULT_STACK"
+            echo "📦 Auto-detected: $DEFAULT_STACK stack (based on path: $TARGET_DIR)"
+            break
+            ;;
+        *)
+            echo "❌ Invalid choice. Please enter 1, 2, 3, or 4."
+            ;;
+    esac
+done
 
 # Replace PROJECT_NAME, user settings, and stack naming in .devcontainer/.env
 if [[ "$OSTYPE" == "darwin"* ]]; then
@@ -140,6 +187,11 @@ else
     sed -i "s/USER_GID=1000/USER_GID=$CURRENT_GID/g" .devcontainer/.env
     sed -i "s/COMPOSE_PROJECT_NAME=flutter/COMPOSE_PROJECT_NAME=$COMPOSE_PROJECT_NAME/g" .devcontainer/.env
 fi
+
+# Add ADB infrastructure project name to .env file
+echo "" >> .devcontainer/.env
+echo "# ADB Infrastructure Configuration" >> .devcontainer/.env
+echo "ADB_INFRASTRUCTURE_PROJECT_NAME=$ADB_INFRASTRUCTURE_PROJECT_NAME" >> .devcontainer/.env
 
 echo "✓ Environment configuration created in .devcontainer/.env"
 
@@ -234,6 +286,7 @@ echo ""
 echo "🔧 Configuration summary:"
 echo "   - Container name: ${PROJECT_NAME}_app"
 echo "   - Stack name: $COMPOSE_PROJECT_NAME"
+echo "   - ADB infrastructure stack: $ADB_INFRASTRUCTURE_PROJECT_NAME"
 echo "   - Network: dartnet (shared)"
 echo "   - ADB server: shared-adb-server:5037"
 echo "   - Infrastructure path: $INFRA_PATH"
@@ -243,6 +296,7 @@ echo ""
 echo "⚙️  Environment configuration:"
 echo "   - PROJECT_NAME=$PROJECT_NAME (in .devcontainer/.env)"
 echo "   - COMPOSE_PROJECT_NAME=$COMPOSE_PROJECT_NAME (in .devcontainer/.env)"
+echo "   - ADB_INFRASTRUCTURE_PROJECT_NAME=$ADB_INFRASTRUCTURE_PROJECT_NAME (in .devcontainer/.env)"
 echo "   - USER_UID=$CURRENT_UID (in .devcontainer/.env)"
 echo "   - USER_GID=$CURRENT_GID (in .devcontainer/.env)"
 echo "   - FLUTTER_VERSION=3.24.0 (in .devcontainer/.env)"
