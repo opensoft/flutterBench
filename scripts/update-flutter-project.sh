@@ -484,14 +484,11 @@ apply_template_files() {
         "scripts"
     )
     
-    # Always copy .env.example
-    cp "$TEMPLATE_DIR/.devcontainer/.env.example" .
-    log_info "Copied: .env.example"
-    
-    # Create .env if it doesn't exist
-    if [ ! -f ".env" ]; then
-        cp ".env.example" ".env"
-        log_info "Created: .env from .env.example"
+    # .env.example is already in .devcontainer from template copy - no need to copy to root
+    # Create .env in .devcontainer if it doesn't exist
+    if [ ! -f ".devcontainer/.env" ]; then
+        cp ".devcontainer/.env.example" ".devcontainer/.env"
+        log_info "Created: .devcontainer/.env from .devcontainer/.env.example"
     fi
     
     for file in "${template_files[@]}"; do
@@ -530,8 +527,8 @@ get_env_value() {
 analyze_env_changes() {
     log_section "🔍 Analyzing Environment Configuration Changes"
     
-    if [ ! -f ".env" ]; then
-        log_error ".env file not found"
+    if [ ! -f ".devcontainer/.env" ]; then
+        log_error ".devcontainer/.env file not found"
         return 1
     fi
     
@@ -551,11 +548,11 @@ analyze_env_changes() {
         new_compose_project_name="dartwingers"
     fi
     
-    # Get current values from .env
-    local current_project_name=$(get_env_value ".env" "PROJECT_NAME")
-    local current_uid_env=$(get_env_value ".env" "USER_UID")
-    local current_gid_env=$(get_env_value ".env" "USER_GID")
-    local current_compose_name=$(get_env_value ".env" "COMPOSE_PROJECT_NAME")
+    # Get current values from .devcontainer/.env
+    local current_project_name=$(get_env_value ".devcontainer/.env" "PROJECT_NAME")
+    local current_uid_env=$(get_env_value ".devcontainer/.env" "USER_UID")
+    local current_gid_env=$(get_env_value ".devcontainer/.env" "USER_GID")
+    local current_compose_name=$(get_env_value ".devcontainer/.env" "COMPOSE_PROJECT_NAME")
     
     # Analyze what would change
     local changes_detected=false
@@ -686,16 +683,16 @@ prompt_selective_updates() {
         echo ""
         case $change in
             "PROJECT_NAME")
-                echo -e "${BLUE}PROJECT_NAME:${NC} $(get_env_value ".env" "PROJECT_NAME") → ${GREEN}$DETECTED_PROJECT_NAME${NC}"
+                echo -e "${BLUE}PROJECT_NAME:${NC} $(get_env_value ".devcontainer/.env" "PROJECT_NAME") → ${GREEN}$DETECTED_PROJECT_NAME${NC}"
                 ;;
             "USER_UID")
-                echo -e "${BLUE}USER_UID:${NC} $(get_env_value ".env" "USER_UID") → ${GREEN}$DETECTED_UID${NC}"
+                echo -e "${BLUE}USER_UID:${NC} $(get_env_value ".devcontainer/.env" "USER_UID") → ${GREEN}$DETECTED_UID${NC}"
                 ;;
             "USER_GID")
-                echo -e "${BLUE}USER_GID:${NC} $(get_env_value ".env" "USER_GID") → ${GREEN}$DETECTED_GID${NC}"
+                echo -e "${BLUE}USER_GID:${NC} $(get_env_value ".devcontainer/.env" "USER_GID") → ${GREEN}$DETECTED_GID${NC}"
                 ;;
             "COMPOSE_PROJECT_NAME")
-                echo -e "${BLUE}COMPOSE_PROJECT_NAME:${NC} $(get_env_value ".env" "COMPOSE_PROJECT_NAME") → ${GREEN}$DETECTED_COMPOSE_NAME${NC}"
+                echo -e "${BLUE}COMPOSE_PROJECT_NAME:${NC} $(get_env_value ".devcontainer/.env" "COMPOSE_PROJECT_NAME") → ${GREEN}$DETECTED_COMPOSE_NAME${NC}"
                 ;;
         esac
         
@@ -743,44 +740,41 @@ apply_env_updates() {
         case $update in
             "PROJECT_NAME")
                 if [[ "$OSTYPE" == "darwin"* ]]; then
-                    sed -i '' "s/PROJECT_NAME=.*/PROJECT_NAME=$DETECTED_PROJECT_NAME/g" .env
+                    sed -i '' "s/PROJECT_NAME=.*/PROJECT_NAME=$DETECTED_PROJECT_NAME/g" .devcontainer/.env
                 else
-                    sed -i "s/PROJECT_NAME=.*/PROJECT_NAME=$DETECTED_PROJECT_NAME/g" .env
+                    sed -i "s/PROJECT_NAME=.*/PROJECT_NAME=$DETECTED_PROJECT_NAME/g" .devcontainer/.env
                 fi
                 updates_applied+=("PROJECT_NAME=$DETECTED_PROJECT_NAME")
                 ;;
             "USER_UID")
                 if [[ "$OSTYPE" == "darwin"* ]]; then
-                    sed -i '' "s/USER_UID=.*/USER_UID=$DETECTED_UID/g" .env
+                    sed -i '' "s/USER_UID=.*/USER_UID=$DETECTED_UID/g" .devcontainer/.env
                 else
-                    sed -i "s/USER_UID=.*/USER_UID=$DETECTED_UID/g" .env
+                    sed -i "s/USER_UID=.*/USER_UID=$DETECTED_UID/g" .devcontainer/.env
                 fi
                 updates_applied+=("USER_UID=$DETECTED_UID")
                 ;;
             "USER_GID")
                 if [[ "$OSTYPE" == "darwin"* ]]; then
-                    sed -i '' "s/USER_GID=.*/USER_GID=$DETECTED_GID/g" .env
+                    sed -i '' "s/USER_GID=.*/USER_GID=$DETECTED_GID/g" .devcontainer/.env
                 else
-                    sed -i "s/USER_GID=.*/USER_GID=$DETECTED_GID/g" .env
+                    sed -i "s/USER_GID=.*/USER_GID=$DETECTED_GID/g" .devcontainer/.env
                 fi
                 updates_applied+=("USER_GID=$DETECTED_GID")
                 ;;
             "COMPOSE_PROJECT_NAME")
                 if [[ "$OSTYPE" == "darwin"* ]]; then
-                    sed -i '' "s/COMPOSE_PROJECT_NAME=.*/COMPOSE_PROJECT_NAME=$DETECTED_COMPOSE_NAME/g" .env
+                    sed -i '' "s/COMPOSE_PROJECT_NAME=.*/COMPOSE_PROJECT_NAME=$DETECTED_COMPOSE_NAME/g" .devcontainer/.env
                 else
-                    sed -i "s/COMPOSE_PROJECT_NAME=.*/COMPOSE_PROJECT_NAME=$DETECTED_COMPOSE_NAME/g" .env
+                    sed -i "s/COMPOSE_PROJECT_NAME=.*/COMPOSE_PROJECT_NAME=$DETECTED_COMPOSE_NAME/g" .devcontainer/.env
                 fi
                 updates_applied+=("COMPOSE_PROJECT_NAME=$DETECTED_COMPOSE_NAME")
                 ;;
         esac
     done
     
-    # Remove .env.example from project root (it's now available in .devcontainer/.env.example)
-    if [ -f ".env.example" ]; then
-        rm .env.example
-        log_info "Removed .env.example (available in .devcontainer/.env.example for reference)"
-    fi
+    # Note: .env.example removal is now handled by cleanup_legacy_devcontainer_files()
+    # .env and .env.example should both be in .devcontainer/ per user rules
     
     log_success "Applied ${#updates_applied[@]} environment updates:"
     for update in "${updates_applied[@]}"; do
@@ -815,6 +809,7 @@ cleanup_legacy_devcontainer_files() {
     # Files that should now be in .devcontainer/ directory
     # Only remove files from project root if they exist in .devcontainer/
     local devcontainer_files=(
+        ".env"
         ".env.example"
         "Dockerfile"
         "docker-compose.yml"

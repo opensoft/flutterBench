@@ -128,13 +128,13 @@ get_dartwing_env_value() {
 check_dartwing_env_updates() {
     log_section "🎯 Checking Dartwing-Specific Environment Configuration"
     
-    if [ ! -f ".env" ]; then
-        log_warning "No .env file found - this should have been handled by the base Flutter update"
+    if [ ! -f ".devcontainer/.env" ]; then
+        log_warning "No .devcontainer/.env file found - this should have been handled by the base Flutter update"
         return 0
     fi
     
     # Get current COMPOSE_PROJECT_NAME
-    local current_compose_name=$(get_dartwing_env_value ".env" "COMPOSE_PROJECT_NAME")
+    local current_compose_name=$(get_dartwing_env_value ".devcontainer/.env" "COMPOSE_PROJECT_NAME")
     local expected_compose_name="dartwingers"
     
     # Check if COMPOSE_PROJECT_NAME needs to be updated for Dartwing
@@ -163,12 +163,12 @@ check_dartwing_env_updates() {
                 # Apply update
                 if [[ "$OSTYPE" == "darwin"* ]]; then
                     # macOS
-                    sed -i '' "s/COMPOSE_PROJECT_NAME=.*/COMPOSE_PROJECT_NAME=dartwingers/g" .env
+                    sed -i '' "s/COMPOSE_PROJECT_NAME=.*/COMPOSE_PROJECT_NAME=dartwingers/g" .devcontainer/.env
                 else
                     # Linux  
-                    sed -i "s/COMPOSE_PROJECT_NAME=.*/COMPOSE_PROJECT_NAME=dartwingers/g" .env
+                    sed -i "s/COMPOSE_PROJECT_NAME=.*/COMPOSE_PROJECT_NAME=dartwingers/g" .devcontainer/.env
                 fi
-                log_success "Updated COMPOSE_PROJECT_NAME=dartwingers in .env"
+                log_success "Updated COMPOSE_PROJECT_NAME=dartwingers in .devcontainer/.env"
                 echo "   • COMPOSE_PROJECT_NAME=dartwingers"
                 ;;
         esac
