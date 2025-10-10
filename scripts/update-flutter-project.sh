@@ -31,6 +31,36 @@ MAGENTA='\033[0;35m'
 NC='\033[0m' # No Color
 
 # ====================================
+# Help/Usage Display
+# ====================================
+
+# Show usage if help requested
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+    echo "Usage: $0 [project-path]"
+    echo ""
+    echo "Updates an existing Flutter project with the latest devcontainer template."
+    echo ""
+    echo "Arguments:"
+    echo "  project-path    Path to Flutter project (default: current directory)"
+    echo ""
+    echo "This script will:"
+    echo "  1. Create a new branch (devcontainer-config-latest)"
+    echo "  2. Apply the latest template files"
+    echo "  3. Configure environment variables automatically"
+    echo "  4. Clean up legacy DevContainer files from project root"
+    echo "  5. Analyze and resolve conflicts with AI assistance"
+    echo "  6. Create a pull request for review"
+    echo "  7. Optionally auto-merge changes back to source branch"
+    echo ""
+    echo "Requirements:"
+    echo "  - Git repository with no uncommitted changes"
+    echo "  - Flutter project (pubspec.yaml present)"
+    echo "  - Latest devcontainer template available"
+    echo ""
+    exit 0
+fi
+
+# ====================================
 # Project Name Normalization
 # ====================================
 
@@ -539,6 +569,21 @@ apply_template_files() {
     # The devcontainer documentation is already available in .devcontainer/docs/
     # Copying it to root creates duplicates that clutter the project structure
     
+    # Update devcontainer name to use actual project name (after template application)
+    if [ -f ".devcontainer/devcontainer.json" ]; then
+        if grep -q "PROJECT_NAME Flutter Dev" .devcontainer/devcontainer.json; then
+            log_info "Updating devcontainer display name to use project name"
+            if [[ "$OSTYPE" == "darwin"* ]]; then
+                # macOS
+                sed -i '' "s/PROJECT_NAME Flutter Dev/${PROJECT_NAME} Flutter Dev/g" .devcontainer/devcontainer.json
+            else
+                # Linux
+                sed -i "s/PROJECT_NAME Flutter Dev/${PROJECT_NAME} Flutter Dev/g" .devcontainer/devcontainer.json
+            fi
+            log_info "DevContainer name updated to '${PROJECT_NAME} Flutter Dev'"
+        fi
+    fi
+    
     log_success "Template files applied"
 }
 
@@ -812,6 +857,8 @@ apply_env_updates() {
     
     # Note: .env.example removal is now handled by cleanup_legacy_devcontainer_files()
     # .env and .env.example should both be in .devcontainer/ per user rules
+    
+    # Note: DevContainer name update is handled by apply_template_files() after template application
     
     log_success "Applied ${#updates_applied[@]} environment updates:"
     for update in "${updates_applied[@]}"; do
@@ -1637,32 +1684,6 @@ main() {
 # ====================================
 # Script Execution
 # ====================================
-
-# Show usage if help requested
-if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
-    echo "Usage: $0 [project-path]"
-    echo ""
-    echo "Updates an existing Flutter project with the latest devcontainer template."
-    echo ""
-    echo "Arguments:"
-    echo "  project-path    Path to Flutter project (default: current directory)"
-    echo ""
-    echo "This script will:"
-    echo "  1. Create a new branch (devcontainer-config-latest)"
-    echo "  2. Apply the latest template files"
-    echo "  3. Configure environment variables automatically"
-    echo "  4. Clean up legacy DevContainer files from project root"
-    echo "  5. Analyze and resolve conflicts with AI assistance"
-    echo "  6. Create a pull request for review"
-    echo "  7. Optionally auto-merge changes back to source branch"
-    echo ""
-    echo "Requirements:"
-    echo "  - Git repository with no uncommitted changes"
-    echo "  - Flutter project (pubspec.yaml present)"
-    echo "  - Latest devcontainer template available"
-    echo ""
-    exit 0
-fi
 
 # Run main function
 main "$@"
