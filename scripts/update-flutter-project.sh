@@ -89,10 +89,10 @@ validate_project() {
         exit 1
     fi
     
-    # Check for uncommitted changes
-    if ! git diff-index --quiet HEAD -- 2>/dev/null; then
+    # Check for uncommitted changes (both tracked and untracked)
+    local git_status=$(git status --porcelain)
+    if [ -n "$git_status" ]; then
         log_warning "Uncommitted changes detected. Offering auto-commit option..."
-        local git_status=$(git status --porcelain)
         echo "$git_status"
         echo ""
         
@@ -144,8 +144,12 @@ Timestamp: $(date '+%Y-%m-%d %H:%M:%S')"
                         ;;
                 esac
                 
-                # Commit the changes
-                if git add . && git commit -m "$commit_message"; then
+                # Commit the changes (with handling for no changes case)
+                git add . 2>/dev/null || true
+                if git diff --cached --quiet; then
+                    # No staged changes after git add
+                    log_info "No changes to commit (working tree is already clean)"
+                elif git commit -m "$commit_message"; then
                     log_success "Changes committed successfully!"
                     echo ""
                 else
