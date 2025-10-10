@@ -104,8 +104,8 @@ echo "⚙️  Setting up environment configuration..."
 # Create .env in .devcontainer folder from .env.example
 cp "$TEMPLATE_DIR/.devcontainer/.env.example" .devcontainer/.env
 
-# Copy README for reference
-cp "$TEMPLATE_DIR/README.md" "DEVCONTAINER_README.md"
+# Note: Skip copying template README.md as DEVCONTAINER_README.md
+# The devcontainer documentation is already available in .devcontainer/docs/
 
 # Replace placeholders in .env
 echo "🔧 Configuring project environment..."
@@ -115,9 +115,12 @@ CURRENT_UID=$(id -u)
 CURRENT_GID=$(id -g)
 CURRENT_USER=$(whoami)
 
-# Detect stack naming based on parent directory
-PARENT_DIR_NAME=$(basename "$TARGET_DIR")
-if [[ "$PARENT_DIR_NAME" == "dartwingers" ]]; then
+# Detect stack naming based on project path
+# Check if the target path contains 'dartwingers' anywhere
+if [[ "$TARGET_DIR" == *"/dartwingers"* ]] || [[ "$TARGET_DIR" == *"/dartwingers/"* ]]; then
+    COMPOSE_PROJECT_NAME="dartwingers"
+# Also check immediate parent for backward compatibility
+elif [[ "$(basename "$TARGET_DIR")" == "dartwingers" ]]; then
     COMPOSE_PROJECT_NAME="dartwingers"
 else
     COMPOSE_PROJECT_NAME="flutter"
@@ -250,7 +253,7 @@ echo "   2. cd $PROJECT_PATH"
 echo "   3. code ."
 echo "   4. When prompted, click 'Reopen in Container'"
 echo ""
-echo "📚 For detailed information, see: DEVCONTAINER_README.md"
+echo "📚 For detailed information, see: .devcontainer/docs/DEVCONTAINER_README.md"
 echo "📚 For environment variables, see: .devcontainer/.env.example"
 echo "📚 For spec-driven development, see: README.md and spec-driven.md"
 echo ""

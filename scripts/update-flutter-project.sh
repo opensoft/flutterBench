@@ -497,11 +497,9 @@ apply_template_files() {
         fi
     done
     
-    # Copy README as reference
-    if [ -f "$TEMPLATE_DIR/README.md" ]; then
-        cp "$TEMPLATE_DIR/README.md" "DEVCONTAINER_README.md"
-        log_info "Copied: README.md → DEVCONTAINER_README.md"
-    fi
+    # Note: Skip copying template README.md as DEVCONTAINER_README.md
+    # The devcontainer documentation is already available in .devcontainer/docs/
+    # Copying it to root creates duplicates that clutter the project structure
     
     log_success "Template files applied"
 }
@@ -538,10 +536,14 @@ analyze_env_changes() {
     local current_gid=$(id -g)
     local current_user=$(whoami)
     
-    # Detect parent directory for compose project name
-    local parent_dir=$(basename "$(dirname "$PROJECT_PATH")")
+    # Detect compose project name based on project path
     local new_compose_project_name="flutter"
-    if [[ "$parent_dir" == "dartwingers" ]]; then
+    
+    # Check if the project path contains 'dartwingers' anywhere
+    if [[ "$PROJECT_PATH" == *"/dartwingers/"* ]]; then
+        new_compose_project_name="dartwingers"
+    # Also check immediate parent for backward compatibility
+    elif [[ "$(basename "$(dirname "$PROJECT_PATH")")" == "dartwingers" ]]; then
         new_compose_project_name="dartwingers"
     fi
     
