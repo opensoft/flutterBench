@@ -57,12 +57,13 @@ services:
       - ANDROID_HOME=/opt/android-sdk
       - ADB_SERVER_SOCKET=tcp:host.docker.internal:5037
     
-    # Connect to shared DevBench network
+    # Connect to shared dartnet network
     networks:
-      - flutter_dev
+      - dartnet
 
 # Shared network for all DevBench containers
 networks:
-  flutter_dev:
-    name: flutter_dev
+  dartnet:
+    name: dartnet
     driver: bridge
+    external: true
