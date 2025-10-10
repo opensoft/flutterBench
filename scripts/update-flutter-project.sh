@@ -30,9 +30,46 @@ CYAN='\033[0;36m'
 MAGENTA='\033[0;35m'
 NC='\033[0m' # No Color
 
+# ====================================
+# Project Name Normalization
+# ====================================
+
+normalize_project_name() {
+    local raw_name="$1"
+    local normalized="$raw_name"
+    
+    # For Dartwingers projects, remove app/service prefixes
+    # appDartwing -> dartwing
+    # serviceDartwing -> dartwing
+    # appLedgerLinc -> ledgerlinc
+    # serviceLedgerLinc -> ledgerlinc
+    
+    # Remove 'app' prefix (case insensitive)
+    if [[ "$normalized" =~ ^[Aa][Pp][Pp](.+)$ ]]; then
+        normalized="${BASH_REMATCH[1]}"
+    fi
+    
+    # Remove 'service' prefix (case insensitive) 
+    if [[ "$normalized" =~ ^[Ss][Ee][Rr][Vv][Ii][Cc][Ee](.+)$ ]]; then
+        normalized="${BASH_REMATCH[1]}"
+    fi
+    
+    # Convert to lowercase for consistency
+    normalized=$(echo "$normalized" | tr '[:upper:]' '[:lower:]')
+    
+    echo "$normalized"
+}
+
 # Project path (default to current directory)
 PROJECT_PATH="${1:-$(pwd)}"
-PROJECT_NAME=$(basename "$PROJECT_PATH")
+PROJECT_NAME_RAW=$(basename "$PROJECT_PATH")
+# Normalize project name (remove app/service prefixes for Dartwingers projects)
+PROJECT_NAME=$(normalize_project_name "$PROJECT_NAME_RAW")
+
+# Log normalization if name changed
+if [ "$PROJECT_NAME" != "$PROJECT_NAME_RAW" ]; then
+    echo -e "${BLUE}📝 Normalized project name: $PROJECT_NAME_RAW → $PROJECT_NAME${NC}" >&2
+fi
 TEMPLATE_BRANCH="devcontainer-config-latest"
 BACKUP_DIR=""
 
