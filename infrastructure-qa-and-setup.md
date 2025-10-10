@@ -1,5 +1,21 @@
 # Questions & Answers: Infrastructure Setup
 
+## Infrastructure Updates
+
+### Shared ADB Server Project Name Fix (Oct 10, 2024)
+**Issue**: The shared-adb-server container was appearing in a "compose" stack in Docker Desktop instead of having a proper project name.
+
+**Root Cause**: The `/home/brett/projects/infrastructure/mobile/android/adb/compose/docker-compose.yml` file was missing a project name definition, causing Docker Compose to default to the directory name "compose".
+
+**Fix Applied**:
+- Added `name: shared-adb-infrastructure` to the docker-compose.yml
+- Removed obsolete `version: '3.8'` attribute
+- Marked `dartnet` network as `external: true` since it's managed by shared infrastructure
+
+**Result**: Container now appears under "shared-adb-infrastructure" project in Docker Desktop, improving organization and clarity.
+
+---
+
 ## Q1: Does initializeCommand go in each Flutter project's compose file?
 
 **Answer: NO** - `initializeCommand` goes in **`.devcontainer/devcontainer.json`**, NOT in `docker-compose.yml`.
