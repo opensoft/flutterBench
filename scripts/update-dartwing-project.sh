@@ -111,6 +111,74 @@ validate_dartwing_project() {
 }
 
 # ====================================
+# Dartwing Environment Configuration Functions
+# ====================================
+
+get_dartwing_env_value() {
+    local env_file="$1"
+    local key="$2"
+    
+    if [ -f "$env_file" ]; then
+        grep "^${key}=" "$env_file" 2>/dev/null | cut -d'=' -f2- || echo "(not set)"
+    else
+        echo "(not set)"
+    fi
+}
+
+check_dartwing_env_updates() {
+    log_section "🎯 Checking Dartwing-Specific Environment Configuration"
+    
+    if [ ! -f ".env" ]; then
+        log_warning "No .env file found - this should have been handled by the base Flutter update"
+        return 0
+    fi
+    
+    # Get current COMPOSE_PROJECT_NAME
+    local current_compose_name=$(get_dartwing_env_value ".env" "COMPOSE_PROJECT_NAME")
+    local expected_compose_name="dartwingers"
+    
+    # Check if COMPOSE_PROJECT_NAME needs to be updated for Dartwing
+    if [ "$current_compose_name" != "$expected_compose_name" ]; then
+        log_warning "Dartwing-specific environment configuration needs updating"
+        echo ""
+        echo -e "${YELLOW}📋 Dartwing Environment Configuration:${NC}"
+        echo "══════════════════════════════════════════════════════════"
+        echo ""
+        echo -e "${BLUE}COMPOSE_PROJECT_NAME:${NC}"
+        echo -e "  Current: ${RED}$current_compose_name${NC}"
+        echo -e "  Expected: ${GREEN}$expected_compose_name${NC}"
+        echo -e "  Impact: Docker stack will be grouped under '${GREEN}dartwingers${NC}' for proper Dartwing integration"
+        echo ""
+        
+        # Prompt user
+        echo -e "${CYAN}Update COMPOSE_PROJECT_NAME to 'dartwingers' for Dartwing project?${NC}"
+        read -p "Update? [Y/n]: " update_choice
+        
+        case $update_choice in
+            [Nn]* )
+                log_info "Skipping COMPOSE_PROJECT_NAME update - keeping current value: $current_compose_name"
+                log_warning "Note: This may cause issues with Dartwing multi-service setup"
+                ;;
+            * )
+                # Apply update
+                if [[ "$OSTYPE" == "darwin"* ]]; then
+                    # macOS
+                    sed -i '' "s/COMPOSE_PROJECT_NAME=.*/COMPOSE_PROJECT_NAME=dartwingers/g" .env
+                else
+                    # Linux  
+                    sed -i "s/COMPOSE_PROJECT_NAME=.*/COMPOSE_PROJECT_NAME=dartwingers/g" .env
+                fi
+                log_success "Updated COMPOSE_PROJECT_NAME=dartwingers in .env"
+                echo "   • COMPOSE_PROJECT_NAME=dartwingers"
+                ;;
+        esac
+    else
+        log_success "Dartwing environment configuration is correct"
+        log_info "COMPOSE_PROJECT_NAME: $current_compose_name ✓"
+    fi
+}
+
+# ====================================
 # Dartwing-Specific Customizations
 # ====================================
 
@@ -129,18 +197,8 @@ apply_dartwing_customizations() {
     cp "$TEMPLATE_DIR/.devcontainer/docker-compose.override.yml" .devcontainer/docker-compose.override.yml
     log_success "Applied Dartwingers docker-compose override configuration"
     
-    # Ensure .env has dartwingers compose project name
-    if [ -f ".env" ]; then
-        log_info "Ensuring COMPOSE_PROJECT_NAME is set to 'dartwingers'..."
-        if [[ "$OSTYPE" == "darwin"* ]]; then
-            # macOS
-            sed -i '' "s/COMPOSE_PROJECT_NAME=.*/COMPOSE_PROJECT_NAME=dartwingers/g" .env
-        else
-            # Linux  
-            sed -i "s/COMPOSE_PROJECT_NAME=.*/COMPOSE_PROJECT_NAME=dartwingers/g" .env
-        fi
-        log_success "Updated COMPOSE_PROJECT_NAME=dartwingers in .env"
-    fi
+    # Check and prompt for Dartwing-specific environment updates
+    check_dartwing_env_updates
     
     log_success "Dartwingers customizations applied"
 }
