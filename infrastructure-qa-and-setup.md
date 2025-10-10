@@ -14,6 +14,36 @@
 
 **Result**: Container now appears under "shared-adb-infrastructure" project in Docker Desktop, improving organization and clarity.
 
+### ADB Infrastructure Project Name Selection (Oct 10, 2024)
+**Enhancement**: Added user choice for ADB infrastructure stack name selection.
+
+**New Features**:
+- Interactive project name selection with 4 options:
+  1. `dartwingers` - For Dartwingers organization projects
+  2. `flutter` - For general Flutter development
+  3. `shared-adb-infrastructure` - Default fallback
+  4. `custom` - User-specified name
+- Environment variable support: `ADB_INFRASTRUCTURE_PROJECT_NAME=dartwingers`
+- Non-interactive mode for CI/automation
+- Project name mismatch detection and warnings
+- Enhanced UI with colors and emojis
+
+**Usage Examples**:
+```bash
+# Interactive mode (prompts for choice)
+./start-adb-if-needed.sh
+
+# Non-interactive with preset project name  
+ADB_INFRASTRUCTURE_PROJECT_NAME=dartwingers ./start-adb-if-needed.sh
+ADB_INFRASTRUCTURE_PROJECT_NAME=flutter ./start-adb-if-needed.sh
+```
+
+**Benefits**:
+- ✅ Flexible stack organization in Docker Desktop
+- ✅ Matches project naming conventions (dartwingers, flutter, etc.)
+- ✅ Automation-friendly with environment variables
+- ✅ Clear visual feedback and status reporting
+
 ---
 
 ## Q1: Does initializeCommand go in each Flutter project's compose file?
