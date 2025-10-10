@@ -1,6 +1,6 @@
 # Project name for organizing all DevBench containers in Docker Desktop
-# This creates the dev-bench project with flutter_bench, java_bench, etc.
-name: dev-bench
+# This creates the flutter project
+name: flutter
 
 services:
   flutter_bench:
@@ -59,10 +59,10 @@ services:
     
     # Connect to shared DevBench network
     networks:
-      - dev_bench
+      - flutter_dev
 
 # Shared network for all DevBench containers
 networks:
-  dev_bench:
-    name: dev_bench
+  flutter_dev:
+    name: flutter_dev
     driver: bridge
