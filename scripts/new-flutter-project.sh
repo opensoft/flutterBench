@@ -193,6 +193,16 @@ echo "" >> .devcontainer/.env
 echo "# ADB Infrastructure Configuration" >> .devcontainer/.env
 echo "ADB_INFRASTRUCTURE_PROJECT_NAME=$ADB_INFRASTRUCTURE_PROJECT_NAME" >> .devcontainer/.env
 
+# Replace PROJECT_NAME placeholder in devcontainer.json
+echo "🔧 Updating devcontainer display name..."
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    # macOS
+    sed -i '' "s/PROJECT_NAME Flutter Dev/${PROJECT_NAME} Flutter Dev/g" .devcontainer/devcontainer.json
+else
+    # Linux
+    sed -i "s/PROJECT_NAME Flutter Dev/${PROJECT_NAME} Flutter Dev/g" .devcontainer/devcontainer.json
+fi
+
 echo "✓ Environment configuration created in .devcontainer/.env"
 
 # Note: devcontainer.json no longer needs PROJECT_NAME replacement since it uses .env
