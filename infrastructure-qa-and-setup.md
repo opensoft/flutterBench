@@ -44,6 +44,58 @@ ADB_INFRASTRUCTURE_PROJECT_NAME=flutter ./start-adb-if-needed.sh
 - ✅ Automation-friendly with environment variables
 - ✅ Clear visual feedback and status reporting
 
+### Dartwingers Service Dependency Management (Oct 10, 2024)
+**Enhancement**: Added automatic service container startup for Dartwingers multi-service projects.
+
+**Problem**: Dartwingers projects have both Flutter app containers (`dartwing_app`) and .NET service containers (`dartwing_service`). When starting the app, the service needs to be running for full functionality.
+
+**Solution**: Created `start-dartwingers-service-if-needed.sh` script that:
+
+**Key Features**:
+- Auto-detects project name from directory (appDartwing → dartwing → dartwing_service)
+- Starts service containers using docker-compose.override.yml
+- Handles both running and stopped service containers
+- Smart detection of development vs production containers
+- Skips service startup for service directories (serviceLedgerLinc)
+- Provides detailed status information and port mappings
+
+**Project Name Logic**:
+```
+Directory Structure:
+  appLedgerLinc    -> ledgerlinc    -> ledgerlinc_service
+  appDartwing      -> dartwing      -> dartwing_service  
+  serviceLedgerLinc -> ledgerlinc    -> skip (service dir)
+```
+
+**Integration**: Added to Flutter devcontainer template `initializeCommand`:
+```json
+{
+  "initializeCommand": {
+    "adb": "../../../infrastructure/.../start-adb-if-needed.sh",
+    "dartwingers-service": "../../../infrastructure/.../start-dartwingers-service-if-needed.sh"
+  }
+}
+```
+
+**Usage Examples**:
+```bash
+# Auto-detect from current directory
+./start-dartwingers-service-if-needed.sh
+
+# Explicit project name
+./start-dartwingers-service-if-needed.sh ledgerlinc
+
+# Environment variable
+PROJECT_NAME=dartwing ./start-dartwingers-service-if-needed.sh
+```
+
+**Benefits**:
+- ✅ Automatic service dependencies for Dartwingers projects
+- ✅ Seamless multi-service development workflow
+- ✅ Supports both development and production service containers
+- ✅ Clear visual feedback and error handling
+- ✅ Zero-config experience - works out of the box
+
 ---
 
 ## Q1: Does initializeCommand go in each Flutter project's compose file?
