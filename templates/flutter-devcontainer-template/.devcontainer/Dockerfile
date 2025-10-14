@@ -126,13 +126,26 @@ RUN echo "export FLUTTER_HOME=\"$FLUTTER_HOME\"" >> ~/.bashrc \
     && echo "export ANDROID_SDK_ROOT=\"$ANDROID_HOME\"" >> ~/.bashrc \
     && echo "export PATH=\"\$FLUTTER_HOME/bin:\$FLUTTER_HOME/bin/cache/dart-sdk/bin:\$ANDROID_HOME/platform-tools:\$ANDROID_HOME/cmdline-tools/latest/bin:\$PATH\"" >> ~/.bashrc \
     && echo "export ADB_SERVER_SOCKET=tcp:shared-adb-server:5037" >> ~/.bashrc \
+    && echo "export DEBUG_MODE=\"$DEBUG_MODE\"" >> ~/.bashrc \
     && echo "export FLUTTER_HOME=\"$FLUTTER_HOME\"" >> ~/.zshrc \
     && echo "export ANDROID_HOME=\"$ANDROID_HOME\"" >> ~/.zshrc \
     && echo "export ANDROID_SDK_ROOT=\"$ANDROID_HOME\"" >> ~/.zshrc \
     && echo "export PATH=\"\$FLUTTER_HOME/bin:\$FLUTTER_HOME/bin/cache/dart-sdk/bin:\$ANDROID_HOME/platform-tools:\$ANDROID_HOME/cmdline-tools/latest/bin:\$PATH\"" >> ~/.zshrc \
     && echo "export ADB_SERVER_SOCKET=tcp:shared-adb-server:5037" >> ~/.zshrc \
-    && echo "export DEBUG_MODE=\"$DEBUG_MODE\"" >> ~/.bashrc \
     && echo "export DEBUG_MODE=\"$DEBUG_MODE\"" >> ~/.zshrc
+
+# Override bash profile to run zsh instead of bash
+# This ensures that when VS Code or scripts try to launch "bash", they get zsh
+RUN echo '# Force zsh when bash is requested' >> ~/.bash_profile \
+    && echo 'if [ -n "$PS1" ] && [ -z "$ZSH_VERSION" ]; then' >> ~/.bash_profile \
+    && echo '    exec /bin/zsh -l' >> ~/.bash_profile \
+    && echo 'fi' >> ~/.bash_profile \
+    && echo '' >> ~/.bash_profile \
+    && echo '# Fallback: source bashrc if we somehow end up in bash' >> ~/.bash_profile \
+    && echo '[ -f ~/.bashrc ] && source ~/.bashrc' >> ~/.bash_profile
+
+# Safety command: Ensure the user shell is set to zsh
+RUN sudo chsh -s /bin/zsh $USER_NAME
 
 # ========================================
 # PHASE 5: WORKSPACE SETUP

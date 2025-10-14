@@ -17,7 +17,7 @@ services:
         DEBUG_MODE: ${DEBUG_MODE:-false}
     
     # Container configuration from .env
-    container_name: ${PROJECT_NAME:-myproject}_app
+    container_name: ${PROJECT_NAME:-Flutter-Dev}
     
     # Run as user specified in .env with defaults
     user: "${USER_UID:-1000}:${USER_GID:-1000}"
@@ -36,7 +36,7 @@ services:
     
     # Volume mounts
     volumes:
-      - .:${WORKSPACE_PATH:-/workspace}
+      - ../:${WORKSPACE_PATH:-/workspace}
       # Persist pub cache per project
       - flutter-pub-cache:${FLUTTER_PUB_CACHE:-/home/vscode/.pub-cache}
       # Persist gradle cache per project
