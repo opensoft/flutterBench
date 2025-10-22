@@ -31,8 +31,8 @@ The `update-flutter-project.sh` and `update-dartwing-project.sh` scripts have be
 
 PROJECT_NAME:
   Current: dartwing
-  New:     appDartwing
-  Impact:  Container names will be appDartwing_app and appDartwing_service
+  New:     app
+  Impact:  Container names will be app_app and app_service
 
 USER_UID:
   Current: 1000

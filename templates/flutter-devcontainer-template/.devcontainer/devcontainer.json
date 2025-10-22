@@ -1,48 +1,42 @@
 {
-  "name": "PROJECT_NAME_PLACEHOLDER",
+  // COPILOT RULE: The "name" field should read PROJECT_NAME from .env file  
+  // SOLUTION: Docker Compose loads .env and sets PROJECT_NAME as container environment variable
+  // We use ${containerEnv:PROJECT_NAME} to read it from the running container
+  // Fallback to generic name if container env is not available yet (cannot use nested variables)
+  "name": "${containerEnv:PROJECT_NAME:Flutter DevContainer}",
+  "_devcontainer_version": "1.1.0",
+  "_template_version": "flutter-devcontainer-1.1.0",
   "dockerComposeFile": "docker-compose.yml",
   "service": "app",
   "workspaceFolder": "/workspace",
 
+  "mounts": [
+    // Make local Claude CLI config available inside the container
+    "source=${localEnv:HOME}/.claude,target=/root/.claude,type=bind,consistency=cached",
+    "source=${localEnv:HOME}/.codex,target=/root/.codex,type=bind,consistency=cached"
+  ],
+
   "overrideCommand": false,
 
   "initializeCommand": {
-    "set-project-name": "bash -c 'source .devcontainer/.env && PROJECT_NAME=${PROJECT_NAME:-myproject}; sed -i \"s/PROJECT_NAME_PLACEHOLDER/$PROJECT_NAME/g\" ${localWorkspaceFolder}/.devcontainer/devcontainer.json'",
-    "ensure-adb-infrastructure": "bash -c 'if docker ps --format \"table {{.Names}}\" | grep -q \"^shared-adb-server$\"; then echo \"✅ ADB server already running\"; else echo \"🔧 ADB server not found - will attempt to start infrastructure...\"; docker compose -p infrastructure -f ../../../infrastructure/mobile/android/adb/docker-compose.yml up -d 2>/dev/null || echo \"⚠️ No ADB infrastructure available - manual setup may be required\"; fi'"
+    "adb": "bash -c 'source ${localWorkspaceFolder}/.devcontainer/.env && ${localWorkspaceFolder}/../../../infrastructure/mobile/android/adb/scripts/start-adb-if-needed.sh'",
+    "dartwingers-check": "${localWorkspaceFolder}/../../../infrastructure/mobile/android/adb/scripts/check-dartwingers-service.sh"
   },
 
   "onCreateCommand": {
-    "setup-flutter-project": "echo 'Container created - Flutter setup will run on start'",
-    "check-ssh-setup": "bash -c 'if [ -d ~/.ssh ] && [ -n \"$(ls ~/.ssh/*.pub 2>/dev/null)\" ]; then echo \"✅ SSH keys found\"; chmod 700 ~/.ssh && chmod 600 ~/.ssh/* 2>/dev/null || true; else echo \"🔑 No SSH keys found - you may need to generate them:\"; echo \"  ssh-keygen -t ed25519 -C your-email@example.com\"; echo \"  Then add the public key to GitHub\"; fi'",
-    "setup-git": "git config --global --add safe.directory /workspace"
+    "setup-flutter-project": "echo 'Container created - Flutter setup will run on start'"
   },
 
-  "postStartCommand": [
-    "echo '🚀 Container started - initializing Flutter environment...'",
-    "bash -c 'echo \"🔑 Checking GitHub authentication...\"; if gh auth status >/dev/null 2>&1; then echo \"✅ GitHub CLI authenticated\"; else echo \"⚠️ GitHub not authenticated\"; echo \"To set up GitHub access, run one of:\"; echo \"  1) gh auth login          (interactive setup)\"; echo \"  2) gh auth login --web     (browser-based)\"; echo \"  3) Export GITHUB_TOKEN     (use personal token)\"; echo \"\nOr set up SSH keys and run gh auth login\"; fi'",
-    "echo '📱 Checking ADB connection...' && timeout 10 adb devices > /dev/null 2>&1 && echo '✅ ADB service connected' || echo '🔄 ADB service connecting...'",
-    "flutter --version && echo '✅ Flutter SDK ready' || echo '⚠️  Flutter SDK not ready yet'",
-    "timeout 300 .devcontainer/scripts/setup-flutter-project.sh && echo '✅ Flutter project setup complete' || echo '🔄 Flutter setup running in background...'",
-    "echo '🎯 Ready for development!'"
-  ],
+  "postStartCommand": ".devcontainer/scripts/startup.sh",
 
   "postAttachCommand": ".devcontainer/scripts/ready-check.sh",
 
   "containerEnv": {
-    "SHELL": "/bin/zsh"
-  },
-
-  "mounts": [
-    "source=${localEnv:HOME}/.ssh,target=/home/${localEnv:USER}/.ssh,type=bind,consistency=cached",
-    "source=${localEnv:HOME}/.config/gh,target=/home/${localEnv:USER}/.config/gh,type=bind,consistency=cached"
-  ],
-
-  "remoteEnv": {
-    "SSH_AUTH_SOCK": "${localEnv:SSH_AUTH_SOCK}"
-  },
-
-  "features": {
-    "ghcr.io/devcontainers/features/github-cli:1": {}
+    "SHELL": "/bin/zsh",
+    "TERM_PROGRAM": "${localEnv:TERM_PROGRAM}",
+    "WARP_HONOR_PS1": "1",
+    "WARP_USE_SSH_WRAPPER": "${localEnv:WARP_USE_SSH_WRAPPER}",
+    "WARP_IS_LOCAL_SHELL_SESSION": "${localEnv:WARP_IS_LOCAL_SHELL_SESSION}"
   },
 
   "customizations": {
@@ -51,7 +45,11 @@
         "Dart-Code.dart-code",
         "Dart-Code.flutter",
         "ms-azuretools.vscode-docker",
-        "GitHub.vscode-github-actions"
+        "bradlc.vscode-tailwindcss",
+        "esbenp.prettier-vscode",
+        "anthropic.claude-code",
+        "openai.chatgpt",
+        "eamodio.gitlens"
       ],
       "settings": {
         "dart.flutterSdkPath": "/flutter",
@@ -62,18 +60,9 @@
           "source.fixAll": "explicit"
         },
         "terminal.integrated.shell.linux": "/bin/zsh",
-        "terminal.integrated.defaultProfile.linux": "zsh",
         "terminal.integrated.automationProfile.linux": {
           "path": "/bin/zsh",
           "args": ["-l"]
-        },
-        "terminal.integrated.profiles.linux": {
-          "bash": {
-            "path": "/bin/zsh"
-          },
-          "zsh": {
-            "path": "/bin/zsh"
-          }
         }
       }
     }
