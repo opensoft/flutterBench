@@ -1,5 +1,103 @@
 # Questions & Answers: Infrastructure Setup
 
+## Infrastructure Updates
+
+### Shared ADB Server Project Name Fix (Oct 10, 2024)
+**Issue**: The shared-adb-server container was appearing in a "compose" stack in Docker Desktop instead of having a proper project name.
+
+**Root Cause**: The `/home/brett/projects/infrastructure/mobile/android/adb/compose/docker-compose.yml` file was missing a project name definition, causing Docker Compose to default to the directory name "compose".
+
+**Fix Applied**:
+- Added `name: shared-adb-infrastructure` to the docker-compose.yml
+- Removed obsolete `version: '3.8'` attribute
+- Marked `dartnet` network as `external: true` since it's managed by shared infrastructure
+
+**Result**: Container now appears under "shared-adb-infrastructure" project in Docker Desktop, improving organization and clarity.
+
+### ADB Infrastructure Project Name Selection (Oct 10, 2024)
+**Enhancement**: Added user choice for ADB infrastructure stack name selection.
+
+**New Features**:
+- Interactive project name selection with 4 options:
+  1. `dartwingers` - For Dartwingers organization projects
+  2. `flutter` - For general Flutter development
+  3. `shared-adb-infrastructure` - Default fallback
+  4. `custom` - User-specified name
+- Environment variable support: `ADB_INFRASTRUCTURE_PROJECT_NAME=dartwingers`
+- Non-interactive mode for CI/automation
+- Project name mismatch detection and warnings
+- Enhanced UI with colors and emojis
+
+**Usage Examples**:
+```bash
+# Interactive mode (prompts for choice)
+./start-adb-if-needed.sh
+
+# Non-interactive with preset project name  
+ADB_INFRASTRUCTURE_PROJECT_NAME=dartwingers ./start-adb-if-needed.sh
+ADB_INFRASTRUCTURE_PROJECT_NAME=flutter ./start-adb-if-needed.sh
+```
+
+**Benefits**:
+- ✅ Flexible stack organization in Docker Desktop
+- ✅ Matches project naming conventions (dartwingers, flutter, etc.)
+- ✅ Automation-friendly with environment variables
+- ✅ Clear visual feedback and status reporting
+
+### Dartwingers Service Dependency Management (Oct 10, 2024)
+**Enhancement**: Added automatic service container startup for Dartwingers multi-service projects.
+
+**Problem**: Dartwingers projects have both Flutter app containers (`dartwing_app`) and .NET service containers (`dartwing_service`). When starting the app, the service needs to be running for full functionality.
+
+**Solution**: Created `start-dartwingers-service-if-needed.sh` script that:
+
+**Key Features**:
+- Auto-detects project name from directory (appDartwing → dartwing → dartwing_service)
+- Starts service containers using docker-compose.override.yml
+- Handles both running and stopped service containers
+- Smart detection of development vs production containers
+- Skips service startup for service directories (serviceLedgerLinc)
+- Provides detailed status information and port mappings
+
+**Project Name Logic**:
+```
+Directory Structure:
+  appLedgerLinc    -> ledgerlinc    -> ledgerlinc_service
+  appDartwing      -> dartwing      -> dartwing_service  
+  serviceLedgerLinc -> ledgerlinc    -> skip (service dir)
+```
+
+**Integration**: Added to Flutter devcontainer template `initializeCommand`:
+```json
+{
+  "initializeCommand": {
+    "adb": "../../../infrastructure/.../start-adb-if-needed.sh",
+    "dartwingers-service": "../../../infrastructure/.../start-dartwingers-service-if-needed.sh"
+  }
+}
+```
+
+**Usage Examples**:
+```bash
+# Auto-detect from current directory
+./start-dartwingers-service-if-needed.sh
+
+# Explicit project name
+./start-dartwingers-service-if-needed.sh ledgerlinc
+
+# Environment variable
+PROJECT_NAME=dartwing ./start-dartwingers-service-if-needed.sh
+```
+
+**Benefits**:
+- ✅ Automatic service dependencies for Dartwingers projects
+- ✅ Seamless multi-service development workflow
+- ✅ Supports both development and production service containers
+- ✅ Clear visual feedback and error handling
+- ✅ Zero-config experience - works out of the box
+
+---
+
 ## Q1: Does initializeCommand go in each Flutter project's compose file?
 
 **Answer: NO** - `initializeCommand` goes in **`.devcontainer/devcontainer.json`**, NOT in `docker-compose.yml`.

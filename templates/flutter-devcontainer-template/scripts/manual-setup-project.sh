@@ -1,8 +1,9 @@
 #!/bin/bash
 # ====================================
-# Flutter DevContainer Environment Setup & Validation
+# Flutter DevContainer Manual Setup Validation
 # ====================================
 # This script validates and sets up the .env file for Flutter DevContainer projects
+# when using manual template setup (not automated new-flutter-project.sh)
 
 set -e
 
@@ -145,7 +146,7 @@ echo "✅ Variable values validated"
 # ====================================
 echo "🔍 Validating infrastructure path..."
 
-INFRA_PATH="../../infrastructure/mobile/android/adb/scripts/start-adb-if-needed.sh"
+INFRA_PATH="../../../infrastructure/mobile/android/adb/scripts/start-adb-if-needed.sh"
 if [ -f "$INFRA_PATH" ]; then
     echo "✅ Infrastructure script found: $INFRA_PATH"
 else
