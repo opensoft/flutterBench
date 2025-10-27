@@ -73,7 +73,7 @@ NC='\033[0m' # No Color
 
 # Get the directory where this script is located
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-TEMPLATE_DIR="$SCRIPT_DIR/../templates/flutter-devcontainer-template"
+TEMPLATE_DIR="$SCRIPT_DIR/../template"
 
 # ====================================
 # Utility Functions
@@ -395,7 +395,7 @@ main() {
     apply_dartwing_customizations
     
     # Generate workspace file for proper status bar naming
-    local template_dir="$(dirname "$(dirname "$SCRIPT_DIR")")/../templates/flutter-devcontainer-template"
+    local template_dir="$SCRIPT_DIR/../template"
     if [ -f "$template_dir/PROJECT_NAME.code-workspace.template" ]; then
         log_info "Creating VS Code workspace file for Dartwing project"
         

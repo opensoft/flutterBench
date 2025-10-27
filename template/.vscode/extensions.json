@@ -1,0 +1,53 @@
+{
+  // "recommendations": [
+  //   // Essential Flutter/Dart Development
+  //   "dart-code.flutter",
+  //   "dart-code.dart-code",
+  //   // Code Quality & Formatting
+  //   "aaron-bond.better-comments",
+  //   "streetsidesoftware.code-spell-checker",
+  //   "bradlc.vscode-tailwindcss",
+  //   "usernamehw.errorlens",
+  //   // Git Integration
+  //   "eamodio.gitlens",
+  //   "mhutchie.git-graph",
+  //   "github.vscode-pull-request-github",
+  //   // Container Development
+  //   "ms-vscode-remote.remote-containers",
+  //   "ms-azuretools.vscode-docker",
+  //   // Testing & Debugging
+  //   "hbenl.vscode-test-explorer",
+  //   "littlefoxteam.vscode-python-test-adapter",
+  //   // JSON & YAML Support
+  //   "redhat.vscode-yaml",
+  //   "ms-vscode.vscode-json",
+  //   // Productivity & UI
+  //   "vscode-icons-team.vscode-icons",
+  //   "pkief.material-icon-theme",
+  //   "ms-vscode.theme-tomorrowkit",
+  //   "christian-kohler.path-intellisense",
+  //   "formulahendry.auto-rename-tag",
+  //   // Code Analysis & Linting
+  //   "ms-python.flake8",
+  //   "ms-python.pylint",
+  //   "esbenp.prettier-vscode",
+  //   // Flutter Specific Tools
+  //   "alexisvt.flutter-snippets",
+  //   "nash.awesome-flutter-snippets",
+  //   "robertbrunhage.flutter-riverpod-snippets",
+  //   "felix.flutter-color",
+  //   // Documentation & Comments
+  //   "ms-vscode.vscode-typescript-next",
+  //   "visualstudioexptteam.vscodeintellicode",
+  //   // Markdown Support
+  //   "yzhang.markdown-all-in-one",
+  //   "davidanson.vscode-markdownlint",
+  //   // Themes (Optional)
+  //   "dracula-theme.theme-dracula",
+  //   "github.github-vscode-theme"
+  // ],
+  "unwantedRecommendations": [
+    "ms-vscode.vscode-typescript",
+    "hookyqr.beautify"
+  ]
+}

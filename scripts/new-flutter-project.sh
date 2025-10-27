@@ -48,7 +48,7 @@ else
 fi
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-TEMPLATE_DIR="$SCRIPT_DIR/../templates/flutter-devcontainer-template"
+TEMPLATE_DIR="$SCRIPT_DIR/../template"
 CONFIG_SCRIPT="$SCRIPT_DIR/../../../scripts/workbench-config.sh"
 METADATA_HELPER="$SCRIPT_DIR/../../../scripts/metadata-helper.sh"
 

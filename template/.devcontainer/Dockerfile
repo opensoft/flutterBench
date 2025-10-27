@@ -1,14 +1,14 @@
 # Lightweight Flutter Project Container
 # Based on FlutterBench but stripped down for individual project use
-# Version: 1.1.0
-# Template: flutter-devcontainer-1.1.0
+# Version: 1.4.0
+# Template: flutter-devcontainer-1.4.0
 FROM ubuntu:24.04
 
 # Container version labels for runtime identification
-LABEL devcontainer.version="1.1.0"
-LABEL devcontainer.template="flutter-devcontainer-1.1.0"
+LABEL devcontainer.version="1.4.0"
+LABEL devcontainer.template="flutter-devcontainer-1.4.0"
 LABEL devcontainer.description="Flutter DevContainer Template"
-LABEL devcontainer.created="2025-01-21T00:00:00Z"
+LABEL devcontainer.created="2025-01-24T00:00:00Z"
 
 # ====================================
 # Build Arguments (from .env via docker-compose)
@@ -42,8 +42,6 @@ RUN apt-get update && apt-get install -y \
   ca-certificates \
   # Flutter/Android essentials
   libglu1-mesa \
-  nodejs \
-  npm \
   openjdk-17-jdk \
   android-tools-adb \
   android-tools-fastboot \
@@ -57,6 +55,21 @@ RUN apt-get update && apt-get install -y \
   nano \
   tree \
   jq \
+  && rm -rf /var/lib/apt/lists/*
+
+# Install Node.js 18.20.0 or higher from NodeSource
+RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
+  && apt-get install -y nodejs \
+  && rm -rf /var/lib/apt/lists/*
+
+# Install ImageMagick with full support for image comparison
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends \
+  imagemagick \
+  libmagickcore-6.q16-7 \
+  libmagickwand-6.q16-7 \
+  ghostscript \
+  fonts-dejavu-core \
   && rm -rf /var/lib/apt/lists/*
 
 # Install AI assistant CLIs (requires Node.js/npm)
