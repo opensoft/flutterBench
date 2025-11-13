@@ -555,14 +555,12 @@ create_backup() {
 apply_template_files() {
     log_section "Applying Template Files"
     
-    # Files to copy from template (excluding .vscode which needs special merge handling)
+    # Files to copy from template
     local template_files=(
         ".devcontainer"
-        ".github"
+        ".vscode"
         ".gitignore"
         "scripts"
-        "README.md"
-        "WARP.md"
     )
     
     # .env.base is already in .devcontainer from template copy - no need to copy to root
@@ -571,14 +569,8 @@ apply_template_files() {
     
     for file in "${template_files[@]}"; do
         if [ -e "$TEMPLATE_DIR/$file" ]; then
-            if [ "$file" = "README.md" ]; then
-                # Copy template README as DEVCONTAINER_README.md to avoid overwriting project README
-                cp "$TEMPLATE_DIR/$file" "DEVCONTAINER_README.md"
-                log_info "Copied: $file -> DEVCONTAINER_README.md"
-            else
-                cp -r "$TEMPLATE_DIR/$file" .
-                log_info "Copied: $file"
-            fi
+            cp -r "$TEMPLATE_DIR/$file" .
+            log_info "Copied: $file"
         fi
     done
     
@@ -624,9 +616,6 @@ apply_template_files() {
     # Clean up temp file
     rm -f "$temp_env"
     
-    # Merge .vscode files
-    merge_vscode_files
-    
     # Note: Skip copying template README.md as DEVCONTAINER_README.md
     # The devcontainer documentation is already available in .devcontainer/docs/
     # Copying it to root creates duplicates that clutter the project structure
@@ -634,34 +623,6 @@ apply_template_files() {
     # Note: DevContainer name is now handled via environment variable substitution
     # The template uses "name": "${localEnv:PROJECT_NAME}" which reads from .env file
     # No direct modification of devcontainer.json is needed
-    
-    # Generate VS Code workspace file for proper status bar naming
-    if [ -f "$TEMPLATE_DIR/PROJECT_NAME.code-workspace.template" ]; then
-        log_info "Creating VS Code workspace file for proper status bar naming"
-        
-        # Get app container suffix from .env or use default
-        local app_suffix="app"
-        if [ -f ".devcontainer/.env" ]; then
-            app_suffix=$(grep "^APP_CONTAINER_SUFFIX=" .devcontainer/.env 2>/dev/null | cut -d'=' -f2 || echo "app")
-        fi
-        
-        # Create workspace file with proper naming
-        local workspace_file="${PROJECT_NAME}-${app_suffix}.code-workspace"
-        
-        # Replace placeholders in template
-        if [[ "$OSTYPE" == "darwin"* ]]; then
-            # macOS
-            sed "s/PROJECT_NAME-APP_CONTAINER_SUFFIX/${PROJECT_NAME}-${app_suffix}/g" \
-                "$TEMPLATE_DIR/PROJECT_NAME.code-workspace.template" > "$workspace_file"
-        else
-            # Linux
-            sed "s/PROJECT_NAME-APP_CONTAINER_SUFFIX/${PROJECT_NAME}-${app_suffix}/g" \
-                "$TEMPLATE_DIR/PROJECT_NAME.code-workspace.template" > "$workspace_file"
-        fi
-        
-        log_success "Created workspace file: $workspace_file"
-        log_info "Open with: code $workspace_file (this will show correct name in status bar)"
-    fi
     
     log_success "Template files applied"
 }
@@ -788,122 +749,6 @@ show_detailed_env_diff() {
             echo ""
         fi
     done
-}
-
-merge_vscode_files() {
-    log_section "🔀 VS Code Configuration Merge"
-    
-    # Create .vscode directory if it doesn't exist
-    mkdir -p .vscode
-    
-    # List of .vscode files to merge from template
-    local vscode_files=(
-        "extensions.json"
-        "launch.json"
-        "mcp.json"
-        "settings.json"
-        "tasks.json"
-    )
-    
-    local files_updated=()
-    local files_added=()
-    
-    for file in "${vscode_files[@]}"; do
-        local template_file="$TEMPLATE_DIR/.vscode/$file"
-        local project_file=".vscode/$file"
-        
-        if [ ! -f "$template_file" ]; then
-            continue
-        fi
-        
-        # If project file doesn't exist, copy from template
-        if [ ! -f "$project_file" ]; then
-            cp "$template_file" "$project_file"
-            files_added+=("$file")
-            log_info "Added new file: .vscode/$file"
-            continue
-        fi
-        
-        # Compare files
-        if diff -q "$project_file" "$template_file" > /dev/null 2>&1; then
-            log_info "Already up to date: .vscode/$file"
-            continue
-        fi
-        
-        # Files are different - prompt for merge
-        echo ""
-        log_warning "Differences found in .vscode/$file"
-        echo ""
-        echo -e "${CYAN}How would you like to handle .vscode/$file?${NC}"
-        echo "  1) Keep current file (no changes)"
-        echo "  2) Replace with template version"
-        echo "  3) View diff and decide"
-        echo "  4) Open diff editor for manual merge"
-        echo ""
-        
-        while true; do
-            read -p "Choose option (1-4): " choice
-            case $choice in
-                1)
-                    log_info "Keeping current .vscode/$file"
-                    break
-                    ;;
-                2)
-                    cp "$template_file" "$project_file"
-                    files_updated+=("$file")
-                    log_success "Updated .vscode/$file with template version"
-                    break
-                    ;;
-                3)
-                    echo ""
-                    echo -e "${BLUE}📋 Diff for .vscode/$file:${NC}"
-                    echo "═══════════════════════════════════════════════════"
-                    if command -v colordiff &> /dev/null; then
-                        diff -u "$project_file" "$template_file" | colordiff
-                    elif diff --color=auto -u "$project_file" "$template_file" &> /dev/null; then
-                        diff --color=auto -u "$project_file" "$template_file"
-                    else
-                        diff -u "$project_file" "$template_file"
-                    fi
-                    echo "═══════════════════════════════════════════════════"
-                    echo ""
-                    echo "After reviewing, choose 1 to keep or 2 to replace:"
-                    ;;
-                4)
-                    log_info "Opening diff editor for .vscode/$file..."
-                    if command -v code &> /dev/null; then
-                        code --diff "$project_file" "$template_file" --wait
-                        log_success "Manual merge completed for .vscode/$file"
-                    elif command -v vimdiff &> /dev/null; then
-                        vimdiff "$project_file" "$template_file"
-                        log_success "Manual merge completed for .vscode/$file"
-                    else
-                        log_warning "No diff editor found."
-                        echo "Current: $project_file"
-                        echo "Template: $template_file"
-                        echo "Please manually merge and press Enter..."
-                        read
-                    fi
-                    break
-                    ;;
-                *)
-                    echo -e "${RED}Invalid choice. Please enter 1, 2, 3, or 4.${NC}"
-                    ;;
-            esac
-        done
-    done
-    
-    # Summary
-    echo ""
-    if [ ${#files_added[@]} -gt 0 ]; then
-        log_success "Added ${#files_added[@]} new .vscode files: ${files_added[*]}"
-    fi
-    if [ ${#files_updated[@]} -gt 0 ]; then
-        log_success "Updated ${#files_updated[@]} .vscode files: ${files_updated[*]}"
-    fi
-    if [ ${#files_added[@]} -eq 0 ] && [ ${#files_updated[@]} -eq 0 ]; then
-        log_success "All .vscode files already up to date"
-    fi
 }
 
 # ====================================

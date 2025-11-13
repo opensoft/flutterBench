@@ -394,38 +394,6 @@ main() {
     # Apply Dartwing-specific customizations
     apply_dartwing_customizations
     
-    # Generate workspace file for proper status bar naming
-    local template_dir="$SCRIPT_DIR/../template"
-    if [ -f "$template_dir/PROJECT_NAME.code-workspace.template" ]; then
-        log_info "Creating VS Code workspace file for Dartwing project"
-        
-        # Get app container suffix from .env or use default
-        local app_suffix="app"
-        if [ -f ".devcontainer/.env" ]; then
-            app_suffix=$(get_dartwing_env_value ".devcontainer/.env" "APP_CONTAINER_SUFFIX")
-            if [ "$app_suffix" = "(not set)" ]; then
-                app_suffix="app"
-            fi
-        fi
-        
-        # Create workspace file with proper naming
-        local workspace_file="${PROJECT_NAME}-${app_suffix}.code-workspace"
-        
-        # Replace placeholders in template
-        if [[ "$OSTYPE" == "darwin"* ]]; then
-            # macOS
-            sed "s/PROJECT_NAME-APP_CONTAINER_SUFFIX/${PROJECT_NAME}-${app_suffix}/g" \
-                "$template_dir/PROJECT_NAME.code-workspace.template" > "$workspace_file"
-        else
-            # Linux
-            sed "s/PROJECT_NAME-APP_CONTAINER_SUFFIX/${PROJECT_NAME}-${app_suffix}/g" \
-                "$template_dir/PROJECT_NAME.code-workspace.template" > "$workspace_file"
-        fi
-        
-        log_success "Created workspace file: $workspace_file"
-        log_info "Open with: code $workspace_file (shows '$PROJECT_NAME-$app_suffix' in status bar)"
-    fi
-    
     # Provide Dartwing-specific analysis
     analyze_dartwing_changes
     
