@@ -1,6 +1,9 @@
 {
 	"name": "Flutter DevBench Container - The Monster",
-	"dockerComposeFile": "docker-compose.yml",
+	"dockerComposeFile": [
+    "docker-compose.yml",
+    "docker-compose.override.yml"
+  ],
 	"service": "flutter_bench",
 	"workspaceFolder": "/workspace",
 	
