@@ -2,6 +2,10 @@
 
 This template provides a **lightweight Flutter project container** with shared ADB infrastructure support.
 
+## 🧱 Layered Images (Current Standard)
+
+FlutterBench is moving to the layered workBenches model (`workbench-base` → `devbench-base` → `flutter-bench`). Any monolithic Dockerfile instructions in this document are legacy and should be treated as deprecated.
+
 ## 🎯 Container Philosophy
 
 This container is designed for **individual Flutter projects** and follows the principle:
@@ -84,13 +88,8 @@ cd Bench/DevBench/FlutterBench/scripts
   - Persistent pub and gradle caches per project
   - Resource limits configurable via `.env`
   - Port mappings for hot reload and DevTools
-- **`Dockerfile`**: 
-  - **Lightweight Ubuntu 24.04** base (much smaller than FlutterBench)
-  - **Configurable Flutter SDK** version via `FLUTTER_VERSION` in `.env`
-  - **Minimal Android SDK** - only platform-tools for debugging
-  - **Essential tools only** - git, curl, nano, jq, tree, zsh
-  - **User creation** matching host UID/GID for proper file permissions
-  - **~300MB smaller** than the FlutterBench monster container
+- **`Dockerfile`** (legacy, deprecated): 
+  - Monolithic build instructions (kept for reference only)
 
 ### Environment Configuration (`.devcontainer/.env`)
 - **`.devcontainer/.env.base`**: Template with all available configuration options (in git)
@@ -241,7 +240,7 @@ Before using, replace these placeholders:
 - ✅ Persistent pub cache volume (faster dependency downloads)
 - ✅ Persistent gradle cache volume (faster Android builds)
 - ✅ Flutter precache during container creation
-- ✅ Optimized Dockerfile layers
+- ✅ Optimized Dockerfile layers (legacy)
 
 ## 🚀 Getting Started
 
