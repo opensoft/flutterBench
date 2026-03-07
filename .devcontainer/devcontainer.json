@@ -1,71 +1,112 @@
 {
-	"name": "Flutter DevBench Container - The Monster",
-	"dockerComposeFile": "docker-compose.yml",
-	"service": "flutter_bench",
-	"workspaceFolder": "/workspace",
-	
-	// Mount host home directory directly for seamless config/SSH access
-	"mounts": [
-		// Projects folder mounted to workspace - gives access to all bench projects
-		"source=${localEnv:HOME}/projects,target=/workspace,type=bind,consistency=cached",
-		// Host home directory mounted directly - gives access to SSH, configs, dotfiles
-		"source=${localEnv:HOME},target=/home/brett,type=bind,consistency=cached"
-	],
-	
-	// Features are now built into the Dockerfile
+    "name": "Flutter DevBench Container",
+    "initializeCommand": "bash ${localWorkspaceFolder}/../../scripts/ensure-layer3.sh --base flutter-bench:latest --chown \"/opt/flutter /opt/android-sdk\"",
+    "image": "flutter-bench:${localEnv:USER}",
+    "runArgs": [
+        "--cap-add=SYS_PTRACE",
+        "--security-opt",
+        "seccomp=unconfined",
+        "--privileged"
+    ],
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "dart-code.dart-code",
+                "dart-code.flutter",
+                "alexisvt.flutter-snippets",
+                "Nash.awesome-flutter-snippets",
+                "jeroen-meijer.pubspec-assist",
+                "robert-brunhage.flutter-riverpod-snippets",
+                "localizely.flutter-intl",
+                "ms-azuretools.vscode-docker",
+                "GitHub.copilot",
+                "esbenp.prettier-vscode",
+                "humao.rest-client",
+                "ms-playwright.playwright",
+                "ms-vscode.test-adapter-converter",
+                "sonarsource.sonarlint-vscode",
+                "bradlc.vscode-tailwindcss",
+                "formulahendry.auto-rename-tag",
+                "christian-kohler.path-intellisense",
+                "usernamehw.errorlens"
+            ],
+            "settings": {
+                "terminal.integrated.defaultProfile.linux": "zsh",
+                "dart.flutterSdkPath": "/opt/flutter",
+                "dart.sdkPath": "/opt/flutter/bin/cache/dart-sdk",
+                "dart.checkForSdkUpdates": false,
+                "dart.openDevTools": "flutter",
+                "dart.previewLsp": true,
+                "dart.lineLength": 120,
+                "dart.hotReloadOnSave": "allIfDirty",
+                "dart.showTodos": true,
+                "flutter.experimentalRefactors": true,
+                "flutter.showWebRecorderButton": true,
+                "sonarlint.pathToNodeExecutable": "/usr/bin/node",
+                "files.associations": {
+                    "*.dart": "dart"
+                }
+            }
+        }
+    },
+    "containerEnv": {
+        "SHELL": "/bin/zsh",
+        "FLUTTER_ROOT": "/opt/flutter",
+        "ANDROID_SDK_ROOT": "/opt/android-sdk",
+        "ANDROID_HOME": "/opt/android-sdk",
+        "ADB_SERVER_SOCKET": "tcp:host.docker.internal:5037",
+        "DOCKER_HOST": "unix:///var/run/docker.sock"
+    },
+    "remoteUser": "${localEnv:USER}",
+    "workspaceFolder": "/workspace",
+    "mounts": [
+        "source=flutterbench-zshhistory,target=/home/${localEnv:USER}/.zsh_history,type=volume",
+        "source=${localEnv:HOME}/projects,target=/workspace/projects,type=bind",
 
-	// Configure tool-specific properties
-	"customizations": {
-		"vscode": {
-			"extensions": [
-				"dart-code.dart-code",
-				"dart-code.flutter",
-				"alexisvt.flutter-snippets",
-				"Nash.awesome-flutter-snippets",
-				"jeroen-meijer.pubspec-assist",
-				"robert-brunhage.flutter-riverpod-snippets",
-				"localizely.flutter-intl",
-				"ms-vscode.vscode-json",
-				"ms-azuretools.vscode-docker",
-				"GitHub.copilot",
-				"GitHub.copilot-chat",
-				"ms-vscode.remote-containers",
-				"esbenp.prettier-vscode",
-				"humao.rest-client",
-				"ms-playwright.playwright",
-				"ms-vscode-remote.remote-ssh",
-				"ms-vscode.test-adapter-converter",
-				"sonarsource.sonarlint-vscode",
-				"bradlc.vscode-tailwindcss",
-				"formulahendry.auto-rename-tag",
-				"christian-kohler.path-intellisense",
-				"usernamehw.errorlens"
-			],
-			"settings": {
-				"terminal.integrated.defaultProfile.linux": "zsh",
-				"dart.flutterSdkPath": "/opt/flutter",
-				"dart.sdkPath": "/opt/flutter/bin/cache/dart-sdk",
-				"dart.checkForSdkUpdates": false,
-				"dart.openDevTools": "flutter",
-				"dart.previewLsp": true,
-				"dart.lineLength": 120,
-				"dart.hotReloadOnSave": "allIfDirty",
-				"dart.showTodos": true,
-				"flutter.experimentalRefactors": true,
-				"flutter.showWebRecorderButton": true,
-				"sonarlint.pathToNodeExecutable": "/usr/bin/node",
-				"files.associations": {
-					"*.dart": "dart"
-				}
-			}
-		}
-	},
+        // Shell configurations
+        "source=${localEnv:HOME}/.zshrc,target=/home/${localEnv:USER}/.zshrc,type=bind,readonly",
+        "source=${localEnv:HOME}/.oh-my-zsh,target=/home/${localEnv:USER}/.oh-my-zsh,type=bind,readonly",
+        "source=${localEnv:HOME}/.p10k.zsh,target=/home/${localEnv:USER}/.p10k.zsh,type=bind,readonly",
+        "source=${localEnv:HOME}/.bashrc,target=/home/${localEnv:USER}/.bashrc,type=bind,readonly",
 
-	// Use 'forwardPorts' to make a list of ports inside the container available locally
-	"forwardPorts": [3000, 8080, 8000, 5037, 5554, 5555],
+        // Git configuration
+        "source=${localEnv:HOME}/.gitconfig,target=/home/${localEnv:USER}/.gitconfig,type=bind,readonly",
 
-	// All setup is done in the Dockerfile
+        // SSH keys and configuration
+        "source=${localEnv:HOME}/.ssh,target=/home/${localEnv:USER}/.ssh,type=bind,readonly",
 
-	// Comment out to connect as root instead. More info: https://aka.ms/vscode-remote/containers/non-root
-	"remoteUser": "brett"
+        // GitHub CLI configuration
+        "source=${localEnv:HOME}/.config/gh,target=/home/${localEnv:USER}/.config/gh,type=bind,readonly",
+
+        // Docker socket
+        "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind",
+
+        // AI Agent Credentials
+        "source=${localEnv:HOME}/.claude,target=/home/${localEnv:USER}/.claude,type=bind,consistency=cached",
+        "source=${localEnv:HOME}/.claude.json,target=/home/${localEnv:USER}/.claude.json,type=bind,consistency=cached",
+        "source=${localEnv:HOME}/.codex,target=/home/${localEnv:USER}/.codex,type=bind,consistency=cached",
+        "source=${localEnv:HOME}/.gemini,target=/home/${localEnv:USER}/.gemini,type=bind,consistency=cached",
+        // Grok (xAI)
+        "source=${localEnv:HOME}/.grok,target=/home/${localEnv:USER}/.grok,type=bind,readonly",
+        // GitHub Copilot CLI
+        "source=${localEnv:HOME}/.copilot-cli,target=/home/${localEnv:USER}/.copilot-cli,type=bind,readonly",
+        // NotebookLM (auth tokens from host)
+        "source=${localEnv:HOME}/.notebooklm,target=/home/${localEnv:USER}/.notebooklm,type=bind,consistency=cached",
+        "source=${localEnv:HOME}/.notebooklm-mcp-cli,target=/home/${localEnv:USER}/.notebooklm-mcp-cli,type=bind,consistency=cached"
+    ],
+    "forwardPorts": [3000, 8080, 5037],
+    "portsAttributes":
+        "3000": {
+            "label": "Flutter Web",
+            "onAutoForward": "openBrowser"
+        },
+        "8080": {
+            "label": "Dev Server",
+            "onAutoForward": "notify"
+        },
+        "5037": {
+            "label": "ADB",
+            "onAutoForward": "silent"
+        }
+    }
 }

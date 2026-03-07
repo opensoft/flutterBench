@@ -2,7 +2,7 @@
 # Extends Layer 1 (devbench-base) with Flutter-specific tools
 # Includes: Flutter SDK, Android SDK, Dart tools, mobile dev tools
 
-ARG BASE_IMAGE=devbench-base:brett
+ARG BASE_IMAGE=devbench-base:latest
 FROM ${BASE_IMAGE}
 
 # Container version labels
@@ -12,9 +12,7 @@ LABEL layer.version="1.0.0"
 LABEL layer.description="Flutter and mobile development tools"
 LABEL bench.type="flutter"
 
-ARG USERNAME=brett
-
-# Switch to root for Flutter installation
+# Everything runs as root — user personalization happens in Layer 3
 USER root
 
 # ========================================
@@ -49,7 +47,7 @@ RUN mkdir -p /opt/android-sdk \
     && mv /opt/android-sdk/cmdline-tools-temp/* /opt/android-sdk/cmdline-tools/latest/ \
     && rmdir /opt/android-sdk/cmdline-tools-temp \
     && chown -R root:root /opt/android-sdk \
-    && chmod -R 755 /opt/android-sdk
+    && chmod -R 775 /opt/android-sdk
 
 # Set Android SDK environment variables
 ENV ANDROID_HOME="/opt/android-sdk"
@@ -73,7 +71,7 @@ RUN yes | /opt/android-sdk/cmdline-tools/latest/bin/sdkmanager --licenses \
     "platforms;android-35" \
     "platforms;android-36" \
     "system-images;android-34;google_apis;x86_64" \
-    && chmod -R 755 /opt/android-sdk
+    && chmod -R 775 /opt/android-sdk
 
 # ========================================
 # FLUTTER ECOSYSTEM
@@ -157,35 +155,27 @@ RUN (npm install -g @figma/figma-api) || \
     echo "❌ Figma CLI installation failed, skipping..."
 
 # ========================================
-# USER CONFIGURATION
+# ENVIRONMENT & SHELL CONFIGURATION (into /etc/skel)
 # ========================================
 
 # Set Java home
 ENV JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
 
-# Set ownership for Flutter
-RUN chown -R ${USERNAME}:${USERNAME} $FLUTTER_HOME
+# Ensure Flutter SDK is group-writable (Layer 3 adds user to root group for write access)
+RUN chown -R root:root $FLUTTER_HOME && chmod -R 775 $FLUTTER_HOME
 
-# Create Android SDK mount point and compatibility directories for the user
-RUN mkdir -p /home/${USERNAME}/Android/Sdk/platform-tools \
-    && ln -sf /opt/android-sdk/platform-tools/adb /home/${USERNAME}/Android/Sdk/platform-tools/adb \
-    && ln -sf /opt/android-sdk/platform-tools/fastboot /home/${USERNAME}/Android/Sdk/platform-tools/fastboot \
-    && chown -R ${USERNAME}:${USERNAME} /home/${USERNAME}/Android/Sdk
-
-USER $USERNAME
-
-# Add Flutter and Android environment to user shells
-RUN echo "export FLUTTER_HOME=\"/opt/flutter\"" >> /home/${USERNAME}/.zshrc \
-    && echo "export ANDROID_HOME=\"/opt/android-sdk\"" >> /home/${USERNAME}/.zshrc \
-    && echo "export ANDROID_SDK_ROOT=\"/opt/android-sdk\"" >> /home/${USERNAME}/.zshrc \
-    && echo "export PATH=\"\$FLUTTER_HOME/bin:\$FLUTTER_HOME/bin/cache/dart-sdk/bin:\$ANDROID_HOME/platform-tools:\$ANDROID_HOME/emulator:\$ANDROID_HOME/cmdline-tools/latest/bin:\$PATH:/home/${USERNAME}/.pub-cache/bin\"" >> /home/${USERNAME}/.zshrc \
-    && echo "export ADB_SERVER_SOCKET=tcp:host.docker.internal:5037" >> /home/${USERNAME}/.zshrc
+# Add Flutter and Android environment to /etc/skel shell configs
+RUN echo '' >> /etc/skel/.zshrc && \
+    echo '# Flutter/Android environment' >> /etc/skel/.zshrc && \
+    echo 'export FLUTTER_HOME="/opt/flutter"' >> /etc/skel/.zshrc && \
+    echo 'export ANDROID_HOME="/opt/android-sdk"' >> /etc/skel/.zshrc && \
+    echo 'export ANDROID_SDK_ROOT="/opt/android-sdk"' >> /etc/skel/.zshrc && \
+    echo 'export PATH="$FLUTTER_HOME/bin:$FLUTTER_HOME/bin/cache/dart-sdk/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/emulator:$ANDROID_HOME/cmdline-tools/latest/bin:$PATH:$HOME/.pub-cache/bin"' >> /etc/skel/.zshrc && \
+    echo 'export ADB_SERVER_SOCKET=tcp:host.docker.internal:5037' >> /etc/skel/.zshrc
 
 # Pre-download Flutter dependencies and accept Android licenses
 RUN flutter doctor --android-licenses || true \
     && flutter precache || true
-
-WORKDIR /workspace
 
 # Default command
 CMD ["sleep", "infinity"]
