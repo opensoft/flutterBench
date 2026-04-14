@@ -35,6 +35,7 @@
   ],
 
   "remoteUser": "${localEnv:USER}",
+  "updateRemoteUserUID": false,
 
   "containerEnv": {
     "SHELL": "/bin/zsh",

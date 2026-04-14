@@ -4,7 +4,7 @@ This directory contains documentation for the DevContainer development environme
 
 ## Layered Images (Current Standard)
 
-FlutterBench is moving to the layered workBenches model (`workbench-base` → `devbench-base` → `flutter-bench`). Any references to monolithic `.devcontainer/Dockerfile` builds in these docs are legacy and should be treated as deprecated.
+FlutterBench is moving to the layered workBenches model (`workbench-base` → `dev-bench-base` → `flutter-bench`). Any references to monolithic `.devcontainer/Dockerfile` builds in these docs are legacy and should be treated as deprecated.
 
 ## 📚 Documentation Files
 

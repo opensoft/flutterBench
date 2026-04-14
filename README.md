@@ -5,12 +5,30 @@ A comprehensive Flutter development environment with DevContainer templates and 
 ## 🧱 Container Architecture (Layered)
 
 FlutterBench is standardizing on the layered workBenches model:
-- **Layer 0**: `workbench-base:{user}`
-- **Layer 1a**: `devbench-base:{user}`
-- **Layer 2**: `flutter-bench:{user}` (bench-specific tools)
+- **Layer 0**: `workbench-base:latest`
+- **Layer 1a**: `dev-bench-base:latest`
+- **Layer 2**: `flutter-bench:latest` (bench-specific tools)
+- **Layer 3**: `flutter-bench:{user}` (user image built from Layer 2)
 
 ### Legacy Note
 Any monolithic `.devcontainer/` Dockerfiles are **deprecated**. The layered images are the source of truth going forward.
+
+## Bench Image Workflow
+
+Use these commands for the bench itself:
+
+```bash
+# Check whether Flutter bench images are current
+./scripts/rebuild-stack.sh --check
+
+# Rebuild Layer 2 and Layer 3
+./scripts/build-layer.sh
+
+# Start the bench container from the prebuilt user image
+./scripts/start-monster.sh
+```
+
+`./scripts/start-monster.sh` no longer builds a monolithic devcontainer image. It ensures `flutter-bench:latest` exists, refreshes `flutter-bench:${USER}` if needed, and then starts the bench container from the layered image.
 
 ## 🎯 Purpose
 
@@ -189,7 +207,9 @@ Regardless of which setup method you used:
 
 ### Development Environment
 - `scripts/launch-devbench.sh` - Launch development container
-- `scripts/start-monster.sh` - Start container infrastructure
+- `scripts/start-monster.sh` - Ensure Layer 2 and Layer 3, then start the bench container
+- `scripts/rebuild-stack.sh` - Check or rebuild the Flutter bench image stack
+- `scripts/ensure-images.sh` - Lightweight Layer 2/Layer 3 check for devcontainer startup
 
 ## 📚 Documentation
 

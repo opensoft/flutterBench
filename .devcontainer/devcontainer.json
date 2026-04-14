@@ -1,13 +1,9 @@
 {
-    "name": "Flutter DevBench Container",
-    "initializeCommand": "bash ${localWorkspaceFolder}/../../scripts/ensure-layer3.sh --base flutter-bench:latest --chown \"/opt/flutter /opt/android-sdk\"",
-    "image": "flutter-bench:${localEnv:USER}",
-    "runArgs": [
-        "--cap-add=SYS_PTRACE",
-        "--security-opt",
-        "seccomp=unconfined",
-        "--privileged"
-    ],
+    "name": "devBenches / flutterBench",
+    "initializeCommand": "bash ${localWorkspaceFolder}/scripts/ensure-images.sh",
+    "dockerComposeFile": "docker-compose.yml",
+    "service": "flutter-bench",
+    "shutdownAction": "stopCompose",
     "customizations": {
         "vscode": {
             "extensions": [
@@ -58,6 +54,7 @@
         "DOCKER_HOST": "unix:///var/run/docker.sock"
     },
     "remoteUser": "${localEnv:USER}",
+    "updateRemoteUserUID": false,
     "workspaceFolder": "/workspace",
     "mounts": [
         "source=flutterbench-zshhistory,target=/home/${localEnv:USER}/.zsh_history,type=volume",
@@ -94,8 +91,8 @@
         "source=${localEnv:HOME}/.notebooklm,target=/home/${localEnv:USER}/.notebooklm,type=bind,consistency=cached",
         "source=${localEnv:HOME}/.notebooklm-mcp-cli,target=/home/${localEnv:USER}/.notebooklm-mcp-cli,type=bind,consistency=cached"
     ],
-    "forwardPorts": [3000, 8080, 5037],
-    "portsAttributes":
+    "forwardPorts": [3000, 8080],
+    "portsAttributes": {
         "3000": {
             "label": "Flutter Web",
             "onAutoForward": "openBrowser"
@@ -103,10 +100,6 @@
         "8080": {
             "label": "Dev Server",
             "onAutoForward": "notify"
-        },
-        "5037": {
-            "label": "ADB",
-            "onAutoForward": "silent"
         }
     }
 }

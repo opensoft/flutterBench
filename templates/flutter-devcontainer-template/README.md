@@ -4,7 +4,7 @@ This template provides a **lightweight Flutter project container** with **centra
 
 ## 🧱 Layered Images (Current Standard)
 
-FlutterBench is moving to the layered workBenches model (`workbench-base` → `devbench-base` → `flutter-bench`). Any monolithic `.devcontainer/Dockerfile` in this template is **legacy** and should be treated as deprecated.
+FlutterBench is moving to the layered workBenches model (`workbench-base` → `dev-bench-base` → `flutter-bench`). Any monolithic `.devcontainer/Dockerfile` in this template is **legacy** and should be treated as deprecated.
 
 ## ⚙️ Centralized Configuration Architecture
 

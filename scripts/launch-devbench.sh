@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -euo pipefail
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DEVBENCH_DIR="$(dirname "$SCRIPT_DIR")"
 CONTAINER_NAME="flutter_bench"
@@ -13,7 +15,7 @@ if docker ps --format "table {{.Names}}" | grep -q "^${CONTAINER_NAME}$"; then
     echo "✅ Container is already running, connecting..."
 else
     echo "🔧 Container not running, starting it first..."
-        ./scripts/start-monster.sh
+    ./scripts/start-monster.sh
     
     # Wait a moment for container to fully start
     sleep 3
@@ -21,7 +23,6 @@ else
     # Check if it started successfully
     if ! docker ps --format "table {{.Names}}" | grep -q "^${CONTAINER_NAME}$"; then
         echo "❌ Failed to start container. Check Docker logs."
-        read -p "Press Enter to exit..."
         exit 1
     fi
 fi

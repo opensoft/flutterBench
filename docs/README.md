@@ -5,11 +5,25 @@ Complete documentation for the Flutter DevContainer development environment.
 ## 🧱 Layered Images (Current Standard)
 
 FlutterBench follows the layered workBenches model:
-- **Layer 0**: `workbench-base:{user}`
-- **Layer 1a**: `devbench-base:{user}`
-- **Layer 2**: `flutter-bench:{user}` (bench-specific tools)
+- **Layer 0**: `workbench-base:latest`
+- **Layer 1a**: `dev-bench-base:latest`
+- **Layer 2**: `flutter-bench:latest` (bench-specific tools)
+- **Layer 3**: `flutter-bench:{user}` (user image built from Layer 2)
 
 Legacy monolithic `.devcontainer/` Dockerfiles are deprecated and kept only for historical reference.
+
+## Bench Maintenance Quick Start
+
+```bash
+# Inspect the Flutter bench image chain
+./scripts/rebuild-stack.sh --check
+
+# Rebuild flutter-bench:latest and flutter-bench:${USER}
+./scripts/build-layer.sh
+
+# Start the bench container from the user image
+./scripts/start-monster.sh
+```
 
 ## 📚 Documentation Overview
 

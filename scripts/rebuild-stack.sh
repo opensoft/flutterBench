@@ -7,12 +7,13 @@
 #   ./rebuild-stack.sh --check   # Just report status, don't rebuild
 #   ./rebuild-stack.sh --force   # Rebuild all layers regardless of age
 
-set -e
+set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 FLUTTER_BENCH_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 DEV_BENCHES_DIR="$(cd "${FLUTTER_BENCH_DIR}/.." && pwd)"
 WORKBENCHES_DIR="$(cd "${DEV_BENCHES_DIR}/.." && pwd)"
+source "${WORKBENCHES_DIR}/scripts/lib/image-names.sh"
 
 # Colors
 RED='\033[0;31m'
@@ -47,14 +48,16 @@ while [[ $# -gt 0 ]]; do
 done
 
 # Image names
-LAYER0_IMAGE="workbench-base:${USERNAME}"
-LAYER1_IMAGE="devbench-base:${USERNAME}"
-LAYER2_IMAGE="flutter-bench:${USERNAME}"
+LAYER0_IMAGE="workbench-base:latest"
+LAYER1_IMAGE="$(resolve_family_base_image dev "$USERNAME" || family_base_image dev)"
+LAYER2_IMAGE="flutter-bench:latest"
+LAYER3_IMAGE="flutter-bench:${USERNAME}"
 
 # Build script locations
 LAYER0_BUILD="${WORKBENCHES_DIR}/base-image/build.sh"
 LAYER1_BUILD="${DEV_BENCHES_DIR}/base-image/build.sh"
 LAYER2_BUILD="${FLUTTER_BENCH_DIR}/scripts/build-layer.sh"
+LAYER3_BUILD="${WORKBENCHES_DIR}/scripts/ensure-layer3.sh"
 
 log_section() {
     echo ""
@@ -118,23 +121,27 @@ echo ""
 TS_LAYER0=$(get_image_timestamp "$LAYER0_IMAGE")
 TS_LAYER1=$(get_image_timestamp "$LAYER1_IMAGE")
 TS_LAYER2=$(get_image_timestamp "$LAYER2_IMAGE")
+TS_LAYER3=$(get_image_timestamp "$LAYER3_IMAGE")
 
 # Display current status
 echo "Current Image Status:"
 echo "  Layer 0 (${LAYER0_IMAGE}): $(format_timestamp $TS_LAYER0)"
 echo "  Layer 1 (${LAYER1_IMAGE}): $(format_timestamp $TS_LAYER1)"
 echo "  Layer 2 (${LAYER2_IMAGE}): $(format_timestamp $TS_LAYER2)"
+echo "  Layer 3 (${LAYER3_IMAGE}): $(format_timestamp $TS_LAYER3)"
 echo ""
 
 # Determine what needs rebuilding
 REBUILD_LAYER0=false
 REBUILD_LAYER1=false
 REBUILD_LAYER2=false
+REBUILD_LAYER3=false
 
 if [ "$MODE" = "force" ]; then
     REBUILD_LAYER0=true
     REBUILD_LAYER1=true
     REBUILD_LAYER2=true
+    REBUILD_LAYER3=true
     log_warn "Force mode: rebuilding all layers"
 else
     # Check Layer 0
@@ -142,6 +149,7 @@ else
         REBUILD_LAYER0=true
         REBUILD_LAYER1=true  # Cascade
         REBUILD_LAYER2=true  # Cascade
+        REBUILD_LAYER3=true  # Cascade
         log_warn "Layer 0 missing - full rebuild required"
     fi
 
@@ -149,31 +157,45 @@ else
     if [ "$TS_LAYER1" = "0" ]; then
         REBUILD_LAYER1=true
         REBUILD_LAYER2=true  # Cascade
+        REBUILD_LAYER3=true  # Cascade
         log_warn "Layer 1 missing - rebuild required"
     elif [ "$TS_LAYER1" -lt "$TS_LAYER0" ] 2>/dev/null; then
         REBUILD_LAYER1=true
         REBUILD_LAYER2=true  # Cascade
+        REBUILD_LAYER3=true  # Cascade
         log_warn "Layer 1 is older than Layer 0 - stale"
     fi
 
     # Check Layer 2
     if [ "$TS_LAYER2" = "0" ]; then
         REBUILD_LAYER2=true
+        REBUILD_LAYER3=true  # Cascade
         log_warn "Layer 2 missing - rebuild required"
     elif [ "$TS_LAYER2" -lt "$TS_LAYER1" ] 2>/dev/null; then
         REBUILD_LAYER2=true
+        REBUILD_LAYER3=true  # Cascade
         log_warn "Layer 2 is older than Layer 1 - stale"
+    fi
+
+    # Check Layer 3
+    if [ "$TS_LAYER3" = "0" ]; then
+        REBUILD_LAYER3=true
+        log_warn "Layer 3 missing - rebuild required"
+    elif [ "$TS_LAYER3" -lt "$TS_LAYER2" ] 2>/dev/null; then
+        REBUILD_LAYER3=true
+        log_warn "Layer 3 is older than Layer 2 - stale"
     fi
 fi
 
 echo ""
 
 # Summary
-if $REBUILD_LAYER0 || $REBUILD_LAYER1 || $REBUILD_LAYER2; then
+if $REBUILD_LAYER0 || $REBUILD_LAYER1 || $REBUILD_LAYER2 || $REBUILD_LAYER3; then
     echo "Rebuild Plan:"
     $REBUILD_LAYER0 && echo "  → Layer 0: ${LAYER0_IMAGE}"
     $REBUILD_LAYER1 && echo "  → Layer 1: ${LAYER1_IMAGE}"
     $REBUILD_LAYER2 && echo "  → Layer 2: ${LAYER2_IMAGE}"
+    $REBUILD_LAYER3 && echo "  → Layer 3: ${LAYER3_IMAGE}"
     echo ""
 else
     log_success "All layers are up to date!"
@@ -197,7 +219,7 @@ if $REBUILD_LAYER0; then
 fi
 
 if $REBUILD_LAYER1; then
-    log_section "Building Layer 1: devbench-base"
+    log_section "Building Layer 1: $(family_base_repo dev)"
     if [ ! -f "$LAYER1_BUILD" ]; then
         log_error "Build script not found: ${LAYER1_BUILD}"
         exit 1
@@ -212,6 +234,16 @@ if $REBUILD_LAYER2; then
         exit 1
     fi
     "$LAYER2_BUILD" --user "$USERNAME"
+    REBUILD_LAYER3=false
+fi
+
+if $REBUILD_LAYER3; then
+    log_section "Building Layer 3: flutter-bench:${USERNAME}"
+    if [ ! -f "$LAYER3_BUILD" ]; then
+        log_error "Build script not found: ${LAYER3_BUILD}"
+        exit 1
+    fi
+    "$LAYER3_BUILD" --base "$LAYER2_IMAGE" --user "$USERNAME" --chown "/opt/flutter /opt/android-sdk"
 fi
 
 log_section "Stack Rebuild Complete!"
@@ -220,10 +252,12 @@ log_section "Stack Rebuild Complete!"
 TS_LAYER0=$(get_image_timestamp "$LAYER0_IMAGE")
 TS_LAYER1=$(get_image_timestamp "$LAYER1_IMAGE")
 TS_LAYER2=$(get_image_timestamp "$LAYER2_IMAGE")
+TS_LAYER3=$(get_image_timestamp "$LAYER3_IMAGE")
 
 echo "Final Image Status:"
 echo "  Layer 0 (${LAYER0_IMAGE}): $(format_timestamp $TS_LAYER0)"
 echo "  Layer 1 (${LAYER1_IMAGE}): $(format_timestamp $TS_LAYER1)"
 echo "  Layer 2 (${LAYER2_IMAGE}): $(format_timestamp $TS_LAYER2)"
+echo "  Layer 3 (${LAYER3_IMAGE}): $(format_timestamp $TS_LAYER3)"
 echo ""
 log_success "All workspaces will now use the latest images on next container start."
