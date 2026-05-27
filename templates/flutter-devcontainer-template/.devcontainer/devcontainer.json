@@ -13,7 +13,8 @@
   "mounts": [
     // Make local Claude CLI config available inside the container
     "source=${localEnv:HOME}/.claude,target=/root/.claude,type=bind,consistency=cached",
-    "source=${localEnv:HOME}/.codex,target=/root/.codex,type=bind,consistency=cached"
+    "source=${localEnv:HOME}/.codex,target=/root/.codex,type=bind,consistency=cached",
+    "source=${localEnv:HOME}/.pi,target=/root/.pi,type=bind,consistency=cached"
   ],
 
   "overrideCommand": false,

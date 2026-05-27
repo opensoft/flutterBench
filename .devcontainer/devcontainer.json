@@ -1,6 +1,6 @@
 {
     "name": "devBenches / flutterBench",
-    "initializeCommand": "bash ${localWorkspaceFolder}/scripts/ensure-images.sh",
+    "initializeCommand": "bash ${localWorkspaceFolder}/../scripts/ensure-sonarqube-mcp.sh && bash ${localWorkspaceFolder}/scripts/ensure-images.sh",
     "dockerComposeFile": "docker-compose.yml",
     "service": "flutter-bench",
     "shutdownAction": "stopCompose",
@@ -15,7 +15,16 @@
                 "robert-brunhage.flutter-riverpod-snippets",
                 "localizely.flutter-intl",
                 "ms-azuretools.vscode-docker",
-                "GitHub.copilot",
+                "ms-azuretools.vscode-containers",
+                "ms-toolsai.jupyter",
+                "openai.chatgpt",
+                "google.geminicodeassist",
+                "google.gemini-cli-vscode-ide-companion",
+                "d3j.gemini-cli-on-vscode",
+                "Anthropic.claude-code",
+                "AndrePimenta.claude-code-chat",
+                "eamodio.gitlens",
+                "github.vscode-github-actions",
                 "esbenp.prettier-vscode",
                 "humao.rest-client",
                 "ms-playwright.playwright",
@@ -79,9 +88,12 @@
         "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind",
 
         // AI Agent Credentials
+        "source=${localEnv:HOME}/.agents,target=/home/${localEnv:USER}/.agents,type=bind,consistency=cached",
         "source=${localEnv:HOME}/.claude,target=/home/${localEnv:USER}/.claude,type=bind,consistency=cached",
         "source=${localEnv:HOME}/.claude.json,target=/home/${localEnv:USER}/.claude.json,type=bind,consistency=cached",
         "source=${localEnv:HOME}/.codex,target=/home/${localEnv:USER}/.codex,type=bind,consistency=cached",
+        "source=${localEnv:HOME}/.pi,target=/home/${localEnv:USER}/.pi,type=bind,consistency=cached",
+        "source=${localEnv:HOME}/.config/sonarqube,target=/home/${localEnv:USER}/.config/sonarqube,type=bind,readonly",
         "source=${localEnv:HOME}/.gemini,target=/home/${localEnv:USER}/.gemini,type=bind,consistency=cached",
         // Grok (xAI)
         "source=${localEnv:HOME}/.grok,target=/home/${localEnv:USER}/.grok,type=bind,readonly",

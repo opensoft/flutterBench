@@ -16,10 +16,11 @@ USER_IMAGE="flutter-bench:${USERNAME}"
 if ! docker image inspect "$LAYER2_IMAGE" >/dev/null 2>&1; then
     echo "⚠ Image '$LAYER2_IMAGE' not found. Running rebuild-stack.sh..."
     echo ""
-    exec "$SCRIPT_DIR/rebuild-stack.sh" --user "$USERNAME"
+    "$SCRIPT_DIR/rebuild-stack.sh" --user "$USERNAME"
 fi
 
 echo "✓ Layer 2 image '$LAYER2_IMAGE' found"
 echo ""
 
-exec "$REPO_DIR/scripts/ensure-layer3.sh" --base "$LAYER2_IMAGE" --user "$USERNAME" --chown "/opt/flutter /opt/android-sdk"
+"$REPO_DIR/scripts/ensure-layer3.sh" --base "$LAYER2_IMAGE" --user "$USERNAME" --chown "/opt/flutter /opt/flutter-3.27.0 /opt/android-sdk"
+bash "$REPO_DIR/scripts/reconcile-devcontainer-container.sh" --container flutter-bench --image "$USER_IMAGE" --project dev-benches --service flutter-bench --replace-existing

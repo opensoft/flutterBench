@@ -243,7 +243,7 @@ if $REBUILD_LAYER3; then
         log_error "Build script not found: ${LAYER3_BUILD}"
         exit 1
     fi
-    "$LAYER3_BUILD" --base "$LAYER2_IMAGE" --user "$USERNAME" --chown "/opt/flutter /opt/android-sdk"
+    "$LAYER3_BUILD" --base "$LAYER2_IMAGE" --user "$USERNAME" --chown "/opt/flutter /opt/flutter-3.27.0 /opt/android-sdk"
 fi
 
 log_section "Stack Rebuild Complete!"

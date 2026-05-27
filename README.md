@@ -30,6 +30,20 @@ Use these commands for the bench itself:
 
 `./scripts/start-monster.sh` no longer builds a monolithic devcontainer image. It ensures `flutter-bench:latest` exists, refreshes `flutter-bench:${USER}` if needed, and then starts the bench container from the layered image.
 
+## Flutter SDK policy
+
+`flutterBench` now carries two SDK tracks in Layer 2:
+
+- `/opt/flutter` — the shared current stable SDK used as the default `flutter`
+- `/opt/flutter-3.27.0` — the long-term supported Flutter 3.27 line for pinned repos
+
+Shell helpers exposed in bench user environments:
+
+- `flutter` / `dart` → current stable
+- `flutter327` / `dart327` → pinned Flutter 3.27.0
+
+Use project-local FVM where the repo pins a version. The baked 3.27 SDK exists to avoid slow first-run downloads for long-lived pinned projects.
+
 ## 🎯 Purpose
 
 FlutterBench provides two ways to create Flutter projects with DevContainer support:
@@ -210,6 +224,20 @@ Regardless of which setup method you used:
 - `scripts/start-monster.sh` - Ensure Layer 2 and Layer 3, then start the bench container
 - `scripts/rebuild-stack.sh` - Check or rebuild the Flutter bench image stack
 - `scripts/ensure-images.sh` - Lightweight Layer 2/Layer 3 check for devcontainer startup
+
+### SonarCloud Coverage
+- `sonarcloud-dart-flutter` - Run Dart/Flutter coverage and SonarCloud scan
+
+`sonarcloud-dart-flutter` reads `SONARQUBE_TOKEN` from
+`~/.config/sonarqube/sonar.env`. For Flutter projects it runs
+`flutter test --coverage`; for pure Dart projects it runs the Dart `coverage`
+package. Both paths produce `coverage/lcov.info`, then the helper invokes:
+
+```bash
+sonar-scanner -Dsonar.dart.lcov.reportPaths=coverage/lcov.info
+```
+
+Shell aliases: `flutter-sonar-coverage` and `dart-sonar-coverage`.
 
 ## 📚 Documentation
 

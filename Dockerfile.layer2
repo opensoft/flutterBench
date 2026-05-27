@@ -8,7 +8,7 @@ FROM ${BASE_IMAGE}
 # Container version labels
 LABEL layer="2"
 LABEL layer.name="flutter-bench"
-LABEL layer.version="1.0.0"
+LABEL layer.version="1.0.1"
 LABEL layer.description="Flutter and mobile development tools"
 LABEL bench.type="flutter"
 
@@ -88,8 +88,9 @@ RUN yes | /opt/android-sdk/cmdline-tools/latest/bin/sdkmanager --licenses \
 # FLUTTER ECOSYSTEM
 # ========================================
 
-# Install Flutter SDK
+# Install Flutter SDKs
 ENV FLUTTER_HOME="/opt/flutter"
+ENV FLUTTER_LTS_327_HOME="/opt/flutter-3.27.0"
 ENV PATH="$PUB_CACHE/bin:$FLUTTER_HOME/bin:$FLUTTER_HOME/bin/cache/dart-sdk/bin:$PATH"
 
 # Install Flutter with fallback
@@ -102,11 +103,27 @@ RUN (git clone --depth 1 --branch stable https://github.com/flutter/flutter.git 
      && $FLUTTER_HOME/bin/flutter config --no-analytics) || \
     echo "❌ Flutter installation failed completely, skipping..."
 
+# Install the long-term supported Flutter 3.27 SDK alongside the shared stable
+# toolchain so pinned repos can avoid first-run downloads inside the bench.
+ARG FLUTTER_LTS_327_VERSION=3.27.0
+RUN set -eux; \
+    tmp_root="$(mktemp -d)"; \
+    archive_path="$tmp_root/flutter_linux_${FLUTTER_LTS_327_VERSION}-stable.tar.xz"; \
+    curl -fsSL --retry 3 --user-agent "Mozilla/5.0" \
+      "https://storage.googleapis.com/flutter_infra_release/releases/stable/linux/flutter_linux_${FLUTTER_LTS_327_VERSION}-stable.tar.xz" \
+      -o "$archive_path"; \
+    tar -xJf "$archive_path" -C "$tmp_root"; \
+    rm -rf "$FLUTTER_LTS_327_HOME"; \
+    mv "$tmp_root/flutter" "$FLUTTER_LTS_327_HOME"; \
+    rm -rf "$tmp_root"; \
+    "$FLUTTER_LTS_327_HOME/bin/flutter" config --no-analytics
+
 # Install shared Dart global tools into a system cache, then expose them via
 # /usr/local/bin so Layer 3 users can run them without inheriting root's home.
 RUN set -eux; \
     mkdir -p "$PUB_CACHE"; \
     for package in \
+        coverage \
         fvm \
         very_good_cli \
         mason_cli \
@@ -184,6 +201,9 @@ RUN set -eux; \
         > /usr/local/bin/intl_utils; \
     chmod +x /usr/local/bin/intl_utils
 
+COPY files/sonarcloud-dart-flutter /usr/local/bin/sonarcloud-dart-flutter
+RUN chmod +x /usr/local/bin/sonarcloud-dart-flutter
+
 # ========================================
 # MOBILE DEVELOPMENT TOOLS
 # ========================================
@@ -247,30 +267,43 @@ RUN (npm install -g @figma/code-connect) || \
 # Set Java home
 ENV JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
 
-# Ensure Flutter SDK is group-writable (Layer 3 adds user to root group for write access)
-RUN chown -R root:root $FLUTTER_HOME && chmod -R 775 $FLUTTER_HOME
+# Ensure Flutter SDKs are group-writable (Layer 3 adds user to root group for write access)
+RUN chown -R root:root $FLUTTER_HOME $FLUTTER_LTS_327_HOME && \
+    chmod -R 775 $FLUTTER_HOME $FLUTTER_LTS_327_HOME
 
 # Allow non-root Layer 3 users to run Flutter git-backed commands safely.
-RUN git config --system --add safe.directory /opt/flutter
+RUN git config --system --add safe.directory /opt/flutter && \
+    git config --system --add safe.directory /opt/flutter-3.27.0
+
+# Expose the pinned 3.27 toolchain as real commands so it works even when
+# devcontainer shell dotfiles are bind-mounted from the host.
+RUN ln -sf "$FLUTTER_LTS_327_HOME/bin/flutter" /usr/local/bin/flutter327 && \
+    ln -sf "$FLUTTER_LTS_327_HOME/bin/dart" /usr/local/bin/dart327
 
 # Add Flutter and Android environment to /etc/skel shell configs
 RUN echo '' >> /etc/skel/.zshrc && \
     echo '# Flutter/Android environment' >> /etc/skel/.zshrc && \
     echo 'export FLUTTER_HOME="/opt/flutter"' >> /etc/skel/.zshrc && \
+    echo 'export FLUTTER_LTS_327_HOME="/opt/flutter-3.27.0"' >> /etc/skel/.zshrc && \
     echo 'export ANDROID_HOME="/opt/android-sdk"' >> /etc/skel/.zshrc && \
     echo 'export ANDROID_SDK_ROOT="/opt/android-sdk"' >> /etc/skel/.zshrc && \
     echo 'export PUB_CACHE="/opt/dart-pub-cache"' >> /etc/skel/.zshrc && \
     echo 'export PATH="$PUB_CACHE/bin:$FLUTTER_HOME/bin:$FLUTTER_HOME/bin/cache/dart-sdk/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/emulator:$ANDROID_HOME/cmdline-tools/latest/bin:$PATH:$HOME/.pub-cache/bin"' >> /etc/skel/.zshrc && \
-    echo 'export ADB_SERVER_SOCKET=tcp:host.docker.internal:5037' >> /etc/skel/.zshrc
+    echo 'export ADB_SERVER_SOCKET=tcp:host.docker.internal:5037' >> /etc/skel/.zshrc && \
+    echo 'alias flutter327="$FLUTTER_LTS_327_HOME/bin/flutter"' >> /etc/skel/.zshrc && \
+    echo 'alias dart327="$FLUTTER_LTS_327_HOME/bin/dart"' >> /etc/skel/.zshrc && \
+    echo 'alias flutter-sonar-coverage="sonarcloud-dart-flutter"' >> /etc/skel/.zshrc && \
+    echo 'alias dart-sonar-coverage="sonarcloud-dart-flutter"' >> /etc/skel/.zshrc
 
 # Pre-download Flutter dependencies and accept Android licenses
 RUN flutter doctor --android-licenses || true \
-    && flutter precache || true
+    && flutter precache || true \
+    && "$FLUTTER_LTS_327_HOME/bin/flutter" precache || true
 
 # Root prewarming creates new cache files; restore group-write only where later
 # Layer 3 users actually need it. The Android SDK tree is already normalized
 # immediately after installation above, so re-walking it here just burns time.
-RUN for shared_dir in "$FLUTTER_HOME/bin/cache" /opt/dart-pub-cache /opt/shorebird; do \
+RUN for shared_dir in "$FLUTTER_HOME/bin/cache" "$FLUTTER_LTS_327_HOME/bin/cache" /opt/dart-pub-cache /opt/shorebird; do \
         if [ -d "$shared_dir" ]; then \
             chmod -R g+rwX "$shared_dir"; \
             find "$shared_dir" -type d -exec chmod g+s {} +; \

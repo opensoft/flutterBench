@@ -19,4 +19,4 @@ if [ -z "$BASE_IMAGE" ]; then
 fi
 
 "${SCRIPT_DIR}/build-layer2.sh" --user "$USERNAME"
-exec "${REPO_DIR}/scripts/ensure-layer3.sh" --base "flutter-bench:latest" --user "$USERNAME" --chown "/opt/flutter /opt/android-sdk"
+exec "${REPO_DIR}/scripts/ensure-layer3.sh" --base "flutter-bench:latest" --user "$USERNAME" --chown "/opt/flutter /opt/flutter-3.27.0 /opt/android-sdk"
