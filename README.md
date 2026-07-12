@@ -194,7 +194,7 @@ PROJECT_NAME=dartwing
 APP_CONTAINER_SUFFIX=app           # Results in: dartwing-app
 SERVICE_CONTAINER_SUFFIX=gateway   # Results in: dartwing-gateway  
 USER_UID=1000
-FLUTTER_VERSION=3.24.0
+FLUTTER_VERSION=3.44.4
 COMPOSE_PROJECT_NAME=dartwingers
 ```
 

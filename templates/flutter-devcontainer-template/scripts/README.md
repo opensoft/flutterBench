@@ -121,7 +121,7 @@ id  # Check your current UID/GID
 📋 Configuration Summary:
    Project Name: my-flutter-app
    User: developer (1000:1000)
-   Flutter Version: 3.24.0
+   Flutter Version: 3.44.4
    Container Name: my-flutter-app-dev
 
 ✅ Your Flutter DevContainer environment is ready!

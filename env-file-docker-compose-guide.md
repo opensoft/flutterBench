@@ -39,7 +39,7 @@ services:
     build:
       args:
         USER_UID: 1000                 # ← Hard-coded
-        FLUTTER_VERSION: 3.24.0        # ← Hard-coded
+        FLUTTER_VERSION: 3.44.4        # ← Hard-coded
 ```
 
 **Solution With .env**:
@@ -177,7 +177,7 @@ Action: Clicks "Reopen in Container"
 │  USER_NAME=developer                                        │
 │  USER_UID=1000                                              │
 │  USER_GID=1000                                              │
-│  FLUTTER_VERSION=3.24.0                                     │
+│  FLUTTER_VERSION=3.44.4                                     │
 └─────────────────────────┬───────────────────────────────────┘
                           ↓
 ┌─────────────────────────────────────────────────────────────┐
@@ -205,7 +205,7 @@ Action: Clicks "Reopen in Container"
 │  - USER_NAME=developer                                      │
 │  - USER_UID=1000                                            │
 │  - USER_GID=1000                                            │
-│  - FLUTTER_VERSION=3.24.0                                   │
+│  - FLUTTER_VERSION=3.44.4                                   │
 └─────────────────────────┬───────────────────────────────────┘
                           ↓
 ┌─────────────────────────────────────────────────────────────┐
@@ -261,7 +261,7 @@ Action: Clicks "Reopen in Container"
 
 ```dockerfile
 ARG USER_UID=1000
-ARG FLUTTER_VERSION=3.24.0
+ARG FLUTTER_VERSION=3.44.4
 
 # Available here during build
 RUN useradd -u ${USER_UID} developer
@@ -391,7 +391,7 @@ USER_GID=1000
 # ====================================
 # Flutter Configuration
 # ====================================
-FLUTTER_VERSION=3.24.0
+FLUTTER_VERSION=3.44.4
 
 # ====================================
 # Container Resources (optional)
@@ -421,7 +421,7 @@ services:
         USER_NAME: ${USER_NAME:-developer}
         USER_UID: ${USER_UID:-1000}
         USER_GID: ${USER_GID:-1000}
-        FLUTTER_VERSION: ${FLUTTER_VERSION:-3.24.0}
+        FLUTTER_VERSION: ${FLUTTER_VERSION:-3.44.4}
     
     # Container configuration from .env
     container_name: ${PROJECT_NAME:-myproject}-dev
@@ -432,7 +432,7 @@ services:
     # Runtime environment variables
     environment:
       - ADB_SERVER_SOCKET=tcp:${ADB_SERVER_HOST:-shared-adb-server}:${ADB_SERVER_PORT:-5037}
-      - FLUTTER_VERSION=${FLUTTER_VERSION:-3.24.0}
+      - FLUTTER_VERSION=${FLUTTER_VERSION:-3.44.4}
     
     # Network configuration
     networks:
@@ -478,7 +478,7 @@ FROM ubuntu:22.04
 ARG USER_NAME=developer
 ARG USER_UID=1000
 ARG USER_GID=1000
-ARG FLUTTER_VERSION=3.24.0
+ARG FLUTTER_VERSION=3.44.4
 
 # Prevent interactive prompts
 ENV DEBIAN_FRONTEND=noninteractive
@@ -586,13 +586,13 @@ PROJECT_NAME=ledgerlinc
 USER_NAME=developer
 USER_UID=1000
 USER_GID=1000
-FLUTTER_VERSION=3.24.0
+FLUTTER_VERSION=3.44.4
 ```
 
 **Result**:
 - Container name: `ledgerlinc-dev`
 - User: `developer` (UID 1000, GID 1000)
-- Flutter: version 3.24.0
+- Flutter: version 3.44.4
 - Pub cache: `flutter-pub-cache-ledgerlinc`
 
 ### Example 2: Different Flutter Version
@@ -623,7 +623,7 @@ PROJECT_NAME=davincidesigner
 USER_NAME=davinci  # ← Custom username
 USER_UID=1500      # ← Custom UID
 USER_GID=1500      # ← Custom GID
-FLUTTER_VERSION=3.24.0
+FLUTTER_VERSION=3.44.4
 ```
 
 **Result**:
@@ -641,7 +641,7 @@ PROJECT_NAME=bigproject
 USER_NAME=developer
 USER_UID=1000
 USER_GID=1000
-FLUTTER_VERSION=3.24.0
+FLUTTER_VERSION=3.44.4
 CONTAINER_MEMORY=8g    # ← More memory
 CONTAINER_CPUS=4       # ← More CPUs
 ```
@@ -889,12 +889,12 @@ echo "✅ .env file validated"
 
 ```bash
 # Good: Clear what it's for
-FLUTTER_VERSION=3.24.0
+FLUTTER_VERSION=3.44.4
 ADB_SERVER_HOST=shared-adb-server
 CONTAINER_MEMORY=4g
 
 # Bad: Unclear
-VERSION=3.24.0
+VERSION=3.44.4
 HOST=server
 MEM=4g
 ```
@@ -917,7 +917,7 @@ USER_GID=1000
 # ====================================
 # Flutter Configuration
 # ====================================
-FLUTTER_VERSION=3.24.0
+FLUTTER_VERSION=3.44.4
 ```
 
 ### 7. Test Configuration Before Committing

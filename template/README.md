@@ -158,7 +158,7 @@ cp .env.example .env
 - `USER_GID`: Group ID - **should match your host GID** (`id -g`)
 
 #### **Flutter Configuration**
-- `FLUTTER_VERSION`: SDK version (e.g., `3.24.0`, `3.19.6`, `stable`)
+- `FLUTTER_VERSION`: SDK version (e.g., `3.44.4`, `3.19.6`, `stable`)
 - `ANDROID_HOME`: Android SDK path in container
 
 #### **Resource Limits**
@@ -244,7 +244,7 @@ Template files use environment variable substitution - **no manual editing requi
 - ✅ Connects to Android emulators on Windows host
 
 ### Development Tools (Lightweight)
-- ✅ **Flutter SDK 3.24.0** (stable channel only)
+- ✅ **Flutter SDK 3.44.4** (stable channel only)
 - ✅ **Minimal Android SDK** (platform-tools for ADB debugging)
 - ✅ **Java 17 JDK** (OpenJDK)
 - ✅ **Essential tools only**: git, curl, nano, jq, tree, zsh, Oh My Zsh

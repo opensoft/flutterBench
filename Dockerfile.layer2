@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1.7
 # Layer 2: Flutter Bench Image
 # Extends Layer 1 (dev-bench-base) with Flutter-specific tools
 # Includes: Flutter SDK, Android SDK, Dart tools, mobile dev tools
@@ -8,7 +9,7 @@ FROM ${BASE_IMAGE}
 # Container version labels
 LABEL layer="2"
 LABEL layer.name="flutter-bench"
-LABEL layer.version="1.0.1"
+LABEL layer.version="1.0.7"
 LABEL layer.description="Flutter and mobile development tools"
 LABEL bench.type="flutter"
 
@@ -50,7 +51,7 @@ RUN apt-get update && apt-get install -y \
 # ========================================
 
 RUN mkdir -p /opt/android-sdk \
-    && wget -q https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -O /tmp/cmdtools.zip \
+    && wget -q https://dl.google.com/android/repository/commandlinetools-linux-14742923_latest.zip -O /tmp/cmdtools.zip \
     && unzip -q /tmp/cmdtools.zip -d /opt/android-sdk \
     && rm /tmp/cmdtools.zip \
     && mv /opt/android-sdk/cmdline-tools /opt/android-sdk/cmdline-tools-temp \
@@ -65,61 +66,131 @@ ENV ANDROID_HOME="/opt/android-sdk"
 ENV ANDROID_SDK_ROOT="/opt/android-sdk"
 ENV PATH="$PATH:/opt/android-sdk/platform-tools:/opt/android-sdk/emulator:/opt/android-sdk/cmdline-tools/latest/bin"
 
-# Install essential Android SDK components
-RUN yes | /opt/android-sdk/cmdline-tools/latest/bin/sdkmanager --licenses \
-    && /opt/android-sdk/cmdline-tools/latest/bin/sdkmanager \
-    "platform-tools" \
-    "emulator" \
-    "cmake;3.22.1" \
-    "ndk;27.0.12077973" \
-    "build-tools;33.0.0" \
-    "build-tools;34.0.0" \
-    "platforms;android-30" \
-    "platforms;android-31" \
-    "platforms;android-32" \
-    "platforms;android-33" \
-    "platforms;android-34" \
-    "platforms;android-35" \
-    "platforms;android-36" \
-    "system-images;android-34;google_apis;x86_64" \
-    && chmod -R 775 /opt/android-sdk
+# Install current Android platform-tools directly. The full sdkmanager package
+# set is opt-in because Google package downloads can hang for hours mid-build.
+ARG ANDROID_PLATFORM_TOOLS_VERSION=37.0.0
+RUN --mount=type=cache,target=/var/cache/android-sdk-downloads,sharing=locked set -eux; \
+    archive="/var/cache/android-sdk-downloads/platform-tools_r${ANDROID_PLATFORM_TOOLS_VERSION}-linux.zip"; \
+    for attempt in 1 2 3 4 5; do \
+        curl -fL --retry 2 --connect-timeout 30 --max-time 900 -C - \
+            -o "$archive" \
+            "https://dl.google.com/android/repository/platform-tools_r${ANDROID_PLATFORM_TOOLS_VERSION}-linux.zip" \
+            && break; \
+        sleep 5; \
+    done; \
+    unzip -q -o "$archive" -d /opt/android-sdk; \
+    chmod -R 775 /opt/android-sdk
+
+ARG INSTALL_ANDROID_SDK_PACKAGES=false
+ARG ANDROID_SDK_PACKAGE_INSTALL_TIMEOUT=600
+RUN if [ "$INSTALL_ANDROID_SDK_PACKAGES" = "true" ]; then \
+        set -eux; \
+        yes | /opt/android-sdk/cmdline-tools/latest/bin/sdkmanager --licenses; \
+        for package in \
+            "emulator" \
+            "cmake;3.22.1" \
+            "ndk;27.0.12077973" \
+            "build-tools;33.0.0" \
+            "build-tools;34.0.0" \
+            "platforms;android-30" \
+            "platforms;android-31" \
+            "platforms;android-32" \
+            "platforms;android-33" \
+            "platforms;android-34" \
+            "platforms;android-35" \
+            "platforms;android-36" \
+            "system-images;android-34;google_apis;x86_64"; do \
+            timeout "$ANDROID_SDK_PACKAGE_INSTALL_TIMEOUT" \
+                /opt/android-sdk/cmdline-tools/latest/bin/sdkmanager "$package" || \
+                echo "Android SDK package ${package} timed out or failed; continuing."; \
+        done; \
+        chmod -R 775 /opt/android-sdk; \
+    else \
+        echo "Skipping heavyweight Android SDK package preloads; set INSTALL_ANDROID_SDK_PACKAGES=true to include them."; \
+    fi
 
 # ========================================
 # FLUTTER ECOSYSTEM
 # ========================================
+
+RUN apt-get update && apt-get install -y --no-install-recommends aria2 \
+    && rm -rf /var/lib/apt/lists/*
 
 # Install Flutter SDKs
 ENV FLUTTER_HOME="/opt/flutter"
 ENV FLUTTER_LTS_327_HOME="/opt/flutter-3.27.0"
 ENV PATH="$PUB_CACHE/bin:$FLUTTER_HOME/bin:$FLUTTER_HOME/bin/cache/dart-sdk/bin:$PATH"
 
-# Install Flutter with fallback
-ARG FLUTTER_VERSION=3.41.6
-RUN (git clone --depth 1 --branch stable https://github.com/flutter/flutter.git $FLUTTER_HOME \
-    && $FLUTTER_HOME/bin/flutter config --no-analytics) || \
-    (echo "⚠️  Flutter git clone failed, using direct download fallback..." && \
-     curl -fsSL --retry 3 --user-agent "Mozilla/5.0" \
-     https://storage.googleapis.com/flutter_infra_release/releases/stable/linux/flutter_linux_${FLUTTER_VERSION}-stable.tar.xz | tar -xJC /opt \
-     && $FLUTTER_HOME/bin/flutter config --no-analytics) || \
-    echo "❌ Flutter installation failed completely, skipping..."
+# Install the versioned Flutter SDK directly. The git clone path can hang for a
+# long time inside Docker Desktop without producing progress output.
+ARG FLUTTER_VERSION=3.44.4
+RUN --mount=type=cache,target=/var/cache/flutter-downloads,sharing=locked set -eux; \
+    mkdir -p /var/cache/flutter-downloads; \
+    download_archive() { \
+        url="$1"; \
+        output="$2"; \
+        if aria2c --allow-overwrite=true --auto-file-renaming=false --continue=true \
+            --max-connection-per-server=8 --split=8 --min-split-size=16M \
+            --max-tries=10 --retry-wait=5 --connect-timeout=30 --timeout=120 \
+            --summary-interval=30 --console-log-level=warn \
+            -d "$(dirname "$output")" -o "$(basename "$output")" "$url"; then \
+            return 0; \
+        fi; \
+        for attempt in 1 2 3 4 5 6 7 8; do \
+            curl -fL --retry 3 --connect-timeout 30 --max-time 1800 -C - \
+              --user-agent "Mozilla/5.0" -o "$output" "$url" && return 0; \
+            sleep 5; \
+        done; \
+        return 1; \
+    }; \
+    archive_path="/var/cache/flutter-downloads/flutter_linux_${FLUTTER_VERSION}-stable.tar.xz"; \
+    download_archive \
+      "https://storage.googleapis.com/flutter_infra_release/releases/stable/linux/flutter_linux_${FLUTTER_VERSION}-stable.tar.xz" \
+      "$archive_path"; \
+    tmp_root="$(mktemp -d)"; \
+    tar -xJf "$archive_path" -C "$tmp_root"; \
+    rm -rf "$FLUTTER_HOME"; \
+    mv "$tmp_root/flutter" "$FLUTTER_HOME"; \
+    rm -rf "$tmp_root"; \
+    git config --system --add safe.directory "$FLUTTER_HOME"; \
+    "$FLUTTER_HOME/bin/flutter" config --no-analytics
 
 # Install the long-term supported Flutter 3.27 SDK alongside the shared stable
 # toolchain so pinned repos can avoid first-run downloads inside the bench.
 ARG FLUTTER_LTS_327_VERSION=3.27.0
-RUN set -eux; \
-    tmp_root="$(mktemp -d)"; \
-    archive_path="$tmp_root/flutter_linux_${FLUTTER_LTS_327_VERSION}-stable.tar.xz"; \
-    curl -fsSL --retry 3 --user-agent "Mozilla/5.0" \
+RUN --mount=type=cache,target=/var/cache/flutter-downloads,sharing=locked set -eux; \
+    mkdir -p /var/cache/flutter-downloads; \
+    download_archive() { \
+        url="$1"; \
+        output="$2"; \
+        if aria2c --allow-overwrite=true --auto-file-renaming=false --continue=true \
+            --max-connection-per-server=8 --split=8 --min-split-size=16M \
+            --max-tries=10 --retry-wait=5 --connect-timeout=30 --timeout=120 \
+            --summary-interval=30 --console-log-level=warn \
+            -d "$(dirname "$output")" -o "$(basename "$output")" "$url"; then \
+            return 0; \
+        fi; \
+        for attempt in 1 2 3 4 5 6 7 8; do \
+            curl -fL --retry 3 --connect-timeout 30 --max-time 1800 -C - \
+              --user-agent "Mozilla/5.0" -o "$output" "$url" && return 0; \
+            sleep 5; \
+        done; \
+        return 1; \
+    }; \
+    archive_path="/var/cache/flutter-downloads/flutter_linux_${FLUTTER_LTS_327_VERSION}-stable.tar.xz"; \
+    download_archive \
       "https://storage.googleapis.com/flutter_infra_release/releases/stable/linux/flutter_linux_${FLUTTER_LTS_327_VERSION}-stable.tar.xz" \
-      -o "$archive_path"; \
+      "$archive_path"; \
+    tmp_root="$(mktemp -d)"; \
     tar -xJf "$archive_path" -C "$tmp_root"; \
     rm -rf "$FLUTTER_LTS_327_HOME"; \
     mv "$tmp_root/flutter" "$FLUTTER_LTS_327_HOME"; \
     rm -rf "$tmp_root"; \
-    "$FLUTTER_LTS_327_HOME/bin/flutter" config --no-analytics
+    git config --system --add safe.directory "$FLUTTER_LTS_327_HOME"
 
 # Install shared Dart global tools into a system cache, then expose them via
 # /usr/local/bin so Layer 3 users can run them without inheriting root's home.
+ARG DART_PUB_ACTIVATE_TIMEOUT=600
 RUN set -eux; \
     mkdir -p "$PUB_CACHE"; \
     for package in \
@@ -138,8 +209,9 @@ RUN set -eux; \
         get_cli \
         patrol_cli \
         melos; do \
-        $FLUTTER_HOME/bin/dart pub global activate "$package" || \
-            echo "❌ ${package} installation failed, skipping..."; \
+        echo "Activating Dart package: ${package}"; \
+        timeout "$DART_PUB_ACTIVATE_TIMEOUT" "$FLUTTER_HOME/bin/dart" pub global activate "$package" || \
+            echo "Dart package ${package} installation failed or timed out, skipping..."; \
     done; \
     if [ -d "$PUB_CACHE/bin" ]; then \
         find "$PUB_CACHE/bin" -maxdepth 1 -type f -exec chmod a+rx {} +; \
@@ -242,9 +314,10 @@ RUN (curl -fsSL --retry 3 --user-agent "Mozilla/5.0" \
     echo "❌ Sentry CLI installation failed completely, skipping..."
 
 # Install Shorebird for code push updates with fallback
-RUN (curl -fsSL --retry 3 --user-agent "Mozilla/5.0" \
-    https://raw.githubusercontent.com/shorebirdtech/install/main/install.sh | bash) || \
-    echo "❌ Shorebird installation failed, skipping..."
+ARG SHOREBIRD_INSTALL_TIMEOUT=600
+RUN timeout "$SHOREBIRD_INSTALL_TIMEOUT" bash -lc 'curl -fsSL --retry 3 --connect-timeout 30 --max-time 300 --user-agent "Mozilla/5.0" \
+    https://raw.githubusercontent.com/shorebirdtech/install/main/install.sh | bash' || \
+    echo "❌ Shorebird installation failed or timed out, skipping..."
 
 # Make Shorebird available to Layer 3 users without relying on root's home directory.
 RUN if [ -d /root/.shorebird ]; then \
@@ -296,9 +369,9 @@ RUN echo '' >> /etc/skel/.zshrc && \
     echo 'alias dart-sonar-coverage="sonarcloud-dart-flutter"' >> /etc/skel/.zshrc
 
 # Pre-download Flutter dependencies and accept Android licenses
-RUN flutter doctor --android-licenses || true \
+RUN timeout 5m bash -lc 'yes | flutter doctor --android-licenses' || true \
     && flutter precache || true \
-    && "$FLUTTER_LTS_327_HOME/bin/flutter" precache || true
+    && timeout 20m "$FLUTTER_LTS_327_HOME/bin/flutter" precache || true
 
 # Root prewarming creates new cache files; restore group-write only where later
 # Layer 3 users actually need it. The Android SDK tree is already normalized
