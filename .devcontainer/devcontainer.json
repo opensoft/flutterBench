@@ -1,6 +1,7 @@
 {
     "name": "devBenches / flutterBench",
     "initializeCommand": "bash ${localWorkspaceFolder}/../scripts/ensure-sonarqube-mcp.sh && bash ${localWorkspaceFolder}/scripts/ensure-images.sh",
+    "postAttachCommand": "bash /workspace/projects/workBenches/devBenches/flutterBench/scripts/ensure-latest-vscode-extension.sh --background",
     "dockerComposeFile": "docker-compose.yml",
     "service": "flutter-bench",
     "shutdownAction": "stopCompose",
@@ -48,6 +49,8 @@
                 "flutter.experimentalRefactors": true,
                 "flutter.showWebRecorderButton": true,
                 "sonarlint.pathToNodeExecutable": "/usr/bin/node",
+                "extensions.autoCheckUpdates": true,
+                "extensions.autoUpdate": true,
                 "files.associations": {
                     "*.dart": "dart"
                 }
