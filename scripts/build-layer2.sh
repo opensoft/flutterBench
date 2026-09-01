@@ -29,6 +29,7 @@ echo "Configuration:"
 echo "  Tag: flutter-bench:latest (user-agnostic)"
 echo "  Base image: ${BASE_IMAGE:-$(family_base_image dev)}"
 echo "  No cache: ${DOCKER_BUILD_NO_CACHE:-0}"
+echo "  Preload Android SDK packages: ${INSTALL_ANDROID_SDK_PACKAGES:-true}"
 echo ""
 
 if [ -z "$BASE_IMAGE" ]; then
@@ -45,6 +46,7 @@ docker build \
     "${DOCKER_BUILD_ARGS[@]}" \
     --build-arg BASE_IMAGE="$BASE_IMAGE" \
     --build-arg USERNAME="$USERNAME" \
+    --build-arg INSTALL_ANDROID_SDK_PACKAGES="${INSTALL_ANDROID_SDK_PACKAGES:-true}" \
     -f Dockerfile.layer2 \
     -t "flutter-bench:latest" \
     .

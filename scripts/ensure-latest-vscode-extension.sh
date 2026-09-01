@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Version: 1.0.0
 # Best-effort update for VS Code remote extensions.
 #
 # Dev Containers installs extension IDs listed in devcontainer.json, but a
@@ -19,19 +20,33 @@ EXTENSION_UPDATE_TIMEOUT_SECONDS="${EXTENSION_UPDATE_TIMEOUT_SECONDS:-180}"
 BACKGROUND=false
 LIST_ONLY=false
 
-case "${1:-}" in
-    --background)
-        BACKGROUND=true
-        shift
-        ;;
-    --worker)
-        shift
-        ;;
-    --list)
-        LIST_ONLY=true
-        shift
-        ;;
-esac
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --background)
+            BACKGROUND=true
+            shift
+            ;;
+        --worker)
+            # Retained for compatibility with background invocations.
+            shift
+            ;;
+        --list)
+            LIST_ONLY=true
+            shift
+            ;;
+        --)
+            shift
+            break
+            ;;
+        -*)
+            echo "ensure-latest-vscode-extension: unknown option: $1" >&2
+            exit 2
+            ;;
+        *)
+            break
+            ;;
+    esac
+done
 
 find_code_cli() {
     if command -v code >/dev/null 2>&1; then
