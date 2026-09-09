@@ -65,7 +65,7 @@ RUN mkdir -p /opt/android-sdk \
 # Set Android SDK environment variables
 ENV ANDROID_HOME="/opt/android-sdk"
 ENV ANDROID_SDK_ROOT="/opt/android-sdk"
-ENV PATH="$PATH:/opt/android-sdk/platform-tools:/opt/android-sdk/emulator:/opt/android-sdk/cmdline-tools/latest/bin"
+ENV PATH="/opt/android-sdk/platform-tools:/opt/android-sdk/emulator:/opt/android-sdk/cmdline-tools/latest/bin:${PATH}"
 
 # Install current Android platform-tools directly. The full sdkmanager package
 # set is installed by default, with per-package timeouts to bound slow or

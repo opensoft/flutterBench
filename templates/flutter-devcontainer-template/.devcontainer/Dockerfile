@@ -6,7 +6,7 @@ FROM ubuntu:24.04
 
 # Container version labels for runtime identification
 LABEL devcontainer.version="1.3.1"
-LABEL devcontainer.template="flutter-devcontainer-1.3.0"
+LABEL devcontainer.template="flutter-devcontainer-1.3.1"
 LABEL devcontainer.description="Flutter DevContainer Template"
 LABEL devcontainer.created="2025-01-21T00:00:00Z"
 

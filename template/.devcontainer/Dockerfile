@@ -1,12 +1,12 @@
 # Lightweight Flutter Project Container
 # Based on FlutterBench but stripped down for individual project use
-# Version: 1.4.0
-# Template: flutter-devcontainer-1.4.0
+# Version: 1.4.1
+# Template: flutter-devcontainer-1.4.1
 FROM ubuntu:24.04
 
 # Container version labels for runtime identification
-LABEL devcontainer.version="1.4.0"
-LABEL devcontainer.template="flutter-devcontainer-1.4.0"
+LABEL devcontainer.version="1.4.1"
+LABEL devcontainer.template="flutter-devcontainer-1.4.1"
 LABEL devcontainer.description="Flutter DevContainer Template"
 LABEL devcontainer.created="2025-01-24T00:00:00Z"
 
@@ -16,7 +16,7 @@ LABEL devcontainer.created="2025-01-24T00:00:00Z"
 ARG USER_NAME=vscode
 ARG USER_UID=1000
 ARG USER_GID=1000
-ARG FLUTTER_VERSION=3.24.0
+ARG FLUTTER_VERSION=3.44.4
 ARG ANDROID_HOME=/home/vscode/android-sdk
 ARG DEBUG_MODE=false
 

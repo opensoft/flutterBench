@@ -1,7 +1,7 @@
 {
   "name": "${containerEnv:PROJECT_NAME:Flutter Development}",
-  "_devcontainer_version": "1.4.0",
-  "_template_version": "flutter-devcontainer-1.4.0",
+  "_devcontainer_version": "1.4.1",
+  "_template_version": "flutter-devcontainer-1.4.1",
   "dockerComposeFile": ["docker-compose.yml", "docker-compose.override.yml"],
   "service": "app",
   "workspaceFolder": "/workspace",
