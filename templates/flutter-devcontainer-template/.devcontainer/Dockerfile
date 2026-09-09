@@ -1,12 +1,12 @@
 # Lightweight Flutter Project Container
 # Based on FlutterBench but stripped down for individual project use
-# Version: 1.3.2
-# Template: flutter-devcontainer-1.3.2
+# Version: 1.3.3
+# Template: flutter-devcontainer-1.3.3
 FROM ubuntu:24.04
 
 # Container version labels for runtime identification
-LABEL devcontainer.version="1.3.2"
-LABEL devcontainer.template="flutter-devcontainer-1.3.2"
+LABEL devcontainer.version="1.3.3"
+LABEL devcontainer.template="flutter-devcontainer-1.3.3"
 LABEL devcontainer.description="Flutter DevContainer Template"
 LABEL devcontainer.created="2025-01-21T00:00:00Z"
 
@@ -114,7 +114,6 @@ RUN sudo mkdir -p $FLUTTER_HOME \
   else \
   VERSION_NUMBER=$(echo "$FLUTTER_VERSION" | sed 's/^v//'); \
   curl -fsSL https://storage.googleapis.com/flutter_infra_release/releases/stable/linux/flutter_linux_${VERSION_NUMBER}-stable.tar.xz | sudo tar -xJC /opt; \
-  sudo mv /opt/flutter $FLUTTER_HOME; \
   fi \
   && sudo chown -R $USER_NAME:$USER_NAME $FLUTTER_HOME
 
