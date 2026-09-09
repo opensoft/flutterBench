@@ -1,7 +1,7 @@
 # Flutter DevContainer Template
 
-Version: 1.4.1
-Template: flutter-devcontainer-1.4.1
+Version: 1.4.2
+Template: flutter-devcontainer-1.4.2
 
 ## Overview
 

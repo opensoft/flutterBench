@@ -1,12 +1,12 @@
 # Lightweight Flutter Project Container
 # Based on FlutterBench but stripped down for individual project use
-# Version: 1.4.1
-# Template: flutter-devcontainer-1.4.1
+# Version: 1.4.2
+# Template: flutter-devcontainer-1.4.2
 FROM ubuntu:24.04
 
 # Container version labels for runtime identification
-LABEL devcontainer.version="1.4.1"
-LABEL devcontainer.template="flutter-devcontainer-1.4.1"
+LABEL devcontainer.version="1.4.2"
+LABEL devcontainer.template="flutter-devcontainer-1.4.2"
 LABEL devcontainer.description="Flutter DevContainer Template"
 LABEL devcontainer.created="2025-01-24T00:00:00Z"
 
@@ -134,8 +134,8 @@ RUN mkdir -p $ANDROID_HOME \
 RUN yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses \
   && $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager \
   "platform-tools" \
-  "platforms;android-34" \
-  "build-tools;34.0.0"
+  "platforms;android-36" \
+  "build-tools;36.0.0"
 
 # Configure Flutter (minimal setup)
 RUN flutter config --no-analytics \
