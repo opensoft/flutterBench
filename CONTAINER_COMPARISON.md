@@ -36,7 +36,7 @@ We use two different container approaches for Flutter development:
 
 ### Project Container (LIGHTWEIGHT) Includes:
 - **Core Utilities**: curl, wget, git, unzip, xz-utils, ca-certificates
-- **Flutter Essentials**: Flutter SDK 3.24.0 (stable only)
+- **Flutter Essentials**: Flutter SDK 3.44.4 (stable only)
 - **Android Basics**: ADB, fastboot, minimal platform-tools
 - **Java Runtime**: OpenJDK 17 (for Android builds)
 - **Shell**: zsh, bash, Oh My Zsh (for better UX)

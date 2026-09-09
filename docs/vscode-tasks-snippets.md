@@ -480,7 +480,7 @@ ENV ANDROID_SDK_ROOT=/android-sdk
 ENV PATH=$PATH:$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_SDK_ROOT/platform-tools
 
 # Install Flutter
-ENV FLUTTER_VERSION=3.24.0
+ENV FLUTTER_VERSION=3.44.4
 ENV FLUTTER_ROOT=/flutter
 RUN git clone --depth 1 --branch ${FLUTTER_VERSION} https://github.com/flutter/flutter.git ${FLUTTER_ROOT}
 ENV PATH=$PATH:${FLUTTER_ROOT}/bin

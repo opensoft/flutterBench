@@ -1,7 +1,7 @@
 # Flutter DevContainer Template
 
-Version: 1.4.0  
-Template: flutter-devcontainer-1.4.0
+Version: 1.4.3
+Template: flutter-devcontainer-1.4.3
 
 ## Overview
 
@@ -24,7 +24,7 @@ cp .devcontainer/.env.example .devcontainer/.env
 
 Edit `.env` and set:
 - `PROJECT_NAME` - Unique name for your project
-- `FLUTTER_VERSION` - Flutter version (e.g., `stable`, `3.24.0`)
+- `FLUTTER_VERSION` - Flutter version (default: `3.44.4`)
 - `USER_NAME`, `USER_UID`, `USER_GID` - Match your host user
 
 ### 2. Enable AI CLI Tools (Optional)
@@ -92,7 +92,7 @@ Key variables in `.env`:
 | Variable | Description | Example |
 |----------|-------------|---------|
 | `PROJECT_NAME` | Container and project identifier | `myapp` |
-| `FLUTTER_VERSION` | Flutter SDK version | `stable` or `3.24.0` |
+| `FLUTTER_VERSION` | Flutter SDK version | `3.44.4` |
 | `USER_NAME` | Container user (match host) | `$(whoami)` |
 | `USER_UID` | User ID (match host) | `$(id -u)` |
 | `USER_GID` | Group ID (match host) | `$(id -g)` |

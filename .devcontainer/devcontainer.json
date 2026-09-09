@@ -1,6 +1,7 @@
 {
     "name": "devBenches / flutterBench",
-    "initializeCommand": "bash ${localWorkspaceFolder}/../scripts/ensure-sonarqube-mcp.sh && bash ${localWorkspaceFolder}/scripts/ensure-images.sh",
+    "initializeCommand": "mkdir -p \"${localEnv:HOME}/.claude-profiles\" \"${localEnv:HOME}/.chatgpt-profiles\" && bash \"${localWorkspaceFolder}/../scripts/ensure-sonarqube-mcp.sh\" && bash \"${localWorkspaceFolder}/scripts/ensure-images.sh\"",
+    "postAttachCommand": "bash \"${containerWorkspaceFolder}/scripts/ensure-latest-vscode-extension.sh\" --background",
     "dockerComposeFile": "docker-compose.yml",
     "service": "flutter-bench",
     "shutdownAction": "stopCompose",
@@ -48,6 +49,8 @@
                 "flutter.experimentalRefactors": true,
                 "flutter.showWebRecorderButton": true,
                 "sonarlint.pathToNodeExecutable": "/usr/bin/node",
+                "extensions.autoCheckUpdates": true,
+                "extensions.autoUpdate": true,
                 "files.associations": {
                     "*.dart": "dart"
                 }
@@ -66,6 +69,7 @@
     "updateRemoteUserUID": false,
     "workspaceFolder": "/workspace",
     "mounts": [
+        "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached",
         "source=flutterbench-zshhistory,target=/home/${localEnv:USER}/.zsh_history,type=volume",
         "source=${localEnv:HOME}/projects,target=/workspace/projects,type=bind",
 
@@ -91,7 +95,9 @@
         "source=${localEnv:HOME}/.agents,target=/home/${localEnv:USER}/.agents,type=bind,consistency=cached",
         "source=${localEnv:HOME}/.claude,target=/home/${localEnv:USER}/.claude,type=bind,consistency=cached",
         "source=${localEnv:HOME}/.claude.json,target=/home/${localEnv:USER}/.claude.json,type=bind,consistency=cached",
+        "source=${localEnv:HOME}/.claude-profiles,target=/home/${localEnv:USER}/.claude-profiles,type=bind,consistency=cached",
         "source=${localEnv:HOME}/.codex,target=/home/${localEnv:USER}/.codex,type=bind,consistency=cached",
+        "source=${localEnv:HOME}/.chatgpt-profiles,target=/home/${localEnv:USER}/.chatgpt-profiles,type=bind,consistency=cached",
         "source=${localEnv:HOME}/.pi,target=/home/${localEnv:USER}/.pi,type=bind,consistency=cached",
         "source=${localEnv:HOME}/.config/sonarqube,target=/home/${localEnv:USER}/.config/sonarqube,type=bind,readonly",
         "source=${localEnv:HOME}/.gemini,target=/home/${localEnv:USER}/.gemini,type=bind,consistency=cached",

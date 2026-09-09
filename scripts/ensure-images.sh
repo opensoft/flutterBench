@@ -23,4 +23,4 @@ echo "✓ Layer 2 image '$LAYER2_IMAGE' found"
 echo ""
 
 "$REPO_DIR/scripts/ensure-layer3.sh" --base "$LAYER2_IMAGE" --user "$USERNAME" --chown "/opt/flutter /opt/flutter-3.27.0 /opt/android-sdk"
-bash "$REPO_DIR/scripts/reconcile-devcontainer-container.sh" --container flutter-bench --image "$USER_IMAGE" --project dev-benches --service flutter-bench --replace-existing
+bash "$REPO_DIR/scripts/reconcile-devcontainer-container.sh" --container flutter-bench --image "$USER_IMAGE" --project dev-benches --service flutter-bench

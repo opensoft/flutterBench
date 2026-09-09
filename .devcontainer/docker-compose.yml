@@ -19,3 +19,8 @@ services:
       - ANDROID_SDK_ROOT=/opt/android-sdk
       - ANDROID_HOME=/opt/android-sdk
       - ADB_SERVER_SOCKET=tcp:host.docker.internal:5037
+    networks:
+      - flutter-bench-net
+
+networks:
+  flutter-bench-net:

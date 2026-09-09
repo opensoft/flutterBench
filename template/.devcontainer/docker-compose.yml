@@ -1,7 +1,7 @@
 # ====================================
 # Flutter DevContainer Docker Compose Configuration
-# Version: 2.0.1
-# Template: flutter-devcontainer-2.0.1
+# Version: 2.0.2
+# Template: flutter-devcontainer-2.0.2
 # Architecture: Centralized Configuration (.env only)
 # COPILOT: Auto-increment version on file changes (PATCH for fixes, MINOR for features, MAJOR for breaking changes)
 # ====================================
@@ -19,7 +19,7 @@ services:
         USER_NAME: ${USER_NAME:-vscode}
         USER_UID: ${USER_UID:-1000}
         USER_GID: ${USER_GID:-1000}
-        FLUTTER_VERSION: ${FLUTTER_VERSION:-3.24.0}
+        FLUTTER_VERSION: ${FLUTTER_VERSION:-3.44.4}
         ANDROID_HOME: ${ANDROID_HOME:-/home/vscode/android-sdk}
         DEBUG_MODE: ${DEBUG_MODE:-false}
     
@@ -37,7 +37,7 @@ services:
     environment:
       - PROJECT_NAME=${PROJECT_NAME:-Flutter-Dev}
       - ADB_SERVER_SOCKET=tcp:${ADB_SERVER_HOST:-shared-adb-server}:${ADB_SERVER_PORT:-5037}
-      - FLUTTER_VERSION=${FLUTTER_VERSION:-3.24.0}
+      - FLUTTER_VERSION=${FLUTTER_VERSION:-3.44.4}
       - ANDROID_HOME=${ANDROID_HOME:-/home/${USER_NAME:-vscode}/android-sdk}
       - FLUTTER_PUB_CACHE=${FLUTTER_PUB_CACHE:-/home/${USER_NAME:-vscode}/.pub-cache}
       - DEBUG_MODE=${DEBUG_MODE:-false}

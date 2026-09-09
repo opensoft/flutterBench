@@ -109,7 +109,7 @@ USER_GID=1000                            # Group ID (run 'id -g')
 ### Development Environment
 ```bash
 # Flutter SDK
-FLUTTER_VERSION=3.24.0                    # Flutter version to install
+FLUTTER_VERSION=3.44.4                    # Flutter version to install
 ANDROID_HOME=/home/vscode/android-sdk     # Android SDK path
 FLUTTER_PUB_CACHE=/home/vscode/.pub-cache # Flutter pub cache path
 
@@ -349,7 +349,7 @@ SERVICE_PORT=5000
 ```bash
 # .env.development
 PROJECT_NAME=myapp-dev  
-FLUTTER_VERSION=3.24.0
+FLUTTER_VERSION=3.44.4
 CONTAINER_MEMORY=8g
 
 # .env.production  
@@ -361,7 +361,7 @@ CONTAINER_MEMORY=4g
 ### Multiple Flutter Versions
 ```bash
 # project1/.env
-FLUTTER_VERSION=3.24.0  # Latest
+FLUTTER_VERSION=3.44.4  # Latest
 
 # project2/.env  
 FLUTTER_VERSION=3.19.6  # Legacy compatibility
