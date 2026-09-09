@@ -1,7 +1,7 @@
 # ====================================
 # Flutter DevContainer Docker Compose Configuration
-# Version: 2.0.1
-# Template: flutter-devcontainer-2.0.1
+# Version: 2.0.2
+# Template: flutter-devcontainer-2.0.2
 # Architecture: Centralized Configuration (.env only)
 # COPILOT: Auto-increment version on file changes (PATCH for fixes, MINOR for features, MAJOR for breaking changes)
 # ====================================

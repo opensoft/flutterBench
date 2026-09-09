@@ -1,11 +1,11 @@
 # Lightweight Flutter Project Container
 # Based on FlutterBench but stripped down for individual project use
-# Version: 1.3.0
-# Template: flutter-devcontainer-1.3.0
+# Version: 1.3.1
+# Template: flutter-devcontainer-1.3.1
 FROM ubuntu:24.04
 
 # Container version labels for runtime identification
-LABEL devcontainer.version="1.3.0"
+LABEL devcontainer.version="1.3.1"
 LABEL devcontainer.template="flutter-devcontainer-1.3.0"
 LABEL devcontainer.description="Flutter DevContainer Template"
 LABEL devcontainer.created="2025-01-21T00:00:00Z"

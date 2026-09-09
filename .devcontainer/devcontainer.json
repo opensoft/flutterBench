@@ -1,7 +1,7 @@
 {
     "name": "devBenches / flutterBench",
     "initializeCommand": "mkdir -p \"${localEnv:HOME}/.claude-profiles\" \"${localEnv:HOME}/.chatgpt-profiles\" && bash \"${localWorkspaceFolder}/../scripts/ensure-sonarqube-mcp.sh\" && bash \"${localWorkspaceFolder}/scripts/ensure-images.sh\"",
-    "postAttachCommand": "bash ${containerWorkspaceFolder}/scripts/ensure-latest-vscode-extension.sh --background",
+    "postAttachCommand": "bash \"${containerWorkspaceFolder}/scripts/ensure-latest-vscode-extension.sh\" --background",
     "dockerComposeFile": "docker-compose.yml",
     "service": "flutter-bench",
     "shutdownAction": "stopCompose",
@@ -69,6 +69,7 @@
     "updateRemoteUserUID": false,
     "workspaceFolder": "/workspace",
     "mounts": [
+        "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached",
         "source=flutterbench-zshhistory,target=/home/${localEnv:USER}/.zsh_history,type=volume",
         "source=${localEnv:HOME}/projects,target=/workspace/projects,type=bind",
 

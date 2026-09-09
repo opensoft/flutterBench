@@ -24,4 +24,3 @@ services:
 
 networks:
   flutter-bench-net:
-    name: flutter-bench_default

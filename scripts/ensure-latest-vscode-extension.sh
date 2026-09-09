@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Version: 1.0.0
+# Version: 1.0.1
 # Best-effort update for VS Code remote extensions.
 #
 # Dev Containers installs extension IDs listed in devcontainer.json, but a
@@ -111,11 +111,14 @@ if [[ "$BACKGROUND" == true ]]; then
 fi
 
 LOCK_PARENT="${HOME}/.vscode-server/data/Machine"
-LOCK_DIR="${LOCK_PARENT}/flutterbench-extension-update.lock"
+LOCK_FILE="${LOCK_PARENT}/flutterbench-extension-update.lock"
 mkdir -p "$LOCK_PARENT"
-if mkdir "$LOCK_DIR" 2>/dev/null; then
-    trap 'rm -rf "$LOCK_DIR"' EXIT
-else
+if ! command -v flock >/dev/null 2>&1; then
+    echo "ensure-latest-vscode-extension: flock is unavailable; skipping extension updates" >&2
+    exit 0
+fi
+exec 9>"$LOCK_FILE"
+if ! flock -n 9; then
     echo "ensure-latest-vscode-extension: another extension update is already running; skipping"
     exit 0
 fi

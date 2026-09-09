@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1.7
-# Version: 1.0.7
+# Version: 1.0.8
 # Layer 2: Flutter Bench Image
 # Extends Layer 1 (dev-bench-base) with Flutter-specific tools
 # Includes: Flutter SDK, Android SDK, Dart tools, mobile dev tools
@@ -10,7 +10,7 @@ FROM ${BASE_IMAGE}
 # Container version labels
 LABEL layer="2"
 LABEL layer.name="flutter-bench"
-LABEL layer.version="1.0.7"
+LABEL layer.version="1.0.8"
 LABEL layer.description="Flutter and mobile development tools"
 LABEL bench.type="flutter"
 
@@ -68,7 +68,8 @@ ENV ANDROID_SDK_ROOT="/opt/android-sdk"
 ENV PATH="$PATH:/opt/android-sdk/platform-tools:/opt/android-sdk/emulator:/opt/android-sdk/cmdline-tools/latest/bin"
 
 # Install current Android platform-tools directly. The full sdkmanager package
-# set is opt-in because Google package downloads can hang for hours mid-build.
+# set is installed by default, with per-package timeouts to bound slow or
+# unavailable Google package downloads.
 ARG ANDROID_PLATFORM_TOOLS_VERSION=37.0.0
 RUN --mount=type=cache,target=/var/cache/android-sdk-downloads,sharing=locked set -eux; \
     archive="/var/cache/android-sdk-downloads/platform-tools_r${ANDROID_PLATFORM_TOOLS_VERSION}-linux.zip"; \
@@ -86,7 +87,7 @@ RUN --mount=type=cache,target=/var/cache/android-sdk-downloads,sharing=locked se
     unzip -q -o "$archive" -d /opt/android-sdk; \
     chmod -R 775 /opt/android-sdk
 
-ARG INSTALL_ANDROID_SDK_PACKAGES=false
+ARG INSTALL_ANDROID_SDK_PACKAGES=true
 ARG ANDROID_SDK_PACKAGE_INSTALL_TIMEOUT=600
 RUN if [ "$INSTALL_ANDROID_SDK_PACKAGES" = "true" ]; then \
         set -eux; \
