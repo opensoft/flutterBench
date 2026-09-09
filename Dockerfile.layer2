@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1.7
-# Version: 1.0.8
+# Version: 1.0.9
 # Layer 2: Flutter Bench Image
 # Extends Layer 1 (dev-bench-base) with Flutter-specific tools
 # Includes: Flutter SDK, Android SDK, Dart tools, mobile dev tools
@@ -10,7 +10,7 @@ FROM ${BASE_IMAGE}
 # Container version labels
 LABEL layer="2"
 LABEL layer.name="flutter-bench"
-LABEL layer.version="1.0.8"
+LABEL layer.version="1.0.9"
 LABEL layer.description="Flutter and mobile development tools"
 LABEL bench.type="flutter"
 
@@ -98,6 +98,7 @@ RUN if [ "$INSTALL_ANDROID_SDK_PACKAGES" = "true" ]; then \
             "ndk;27.0.12077973" \
             "build-tools;33.0.0" \
             "build-tools;34.0.0" \
+            "build-tools;36.0.0" \
             "platforms;android-30" \
             "platforms;android-31" \
             "platforms;android-32" \
@@ -106,9 +107,17 @@ RUN if [ "$INSTALL_ANDROID_SDK_PACKAGES" = "true" ]; then \
             "platforms;android-35" \
             "platforms;android-36" \
             "system-images;android-34;google_apis;x86_64"; do \
-            timeout "$ANDROID_SDK_PACKAGE_INSTALL_TIMEOUT" \
-                /opt/android-sdk/cmdline-tools/latest/bin/sdkmanager "$package" || \
-                echo "Android SDK package ${package} timed out or failed; continuing."; \
+            installed=false; \
+            for attempt in 1 2 3; do \
+                if timeout "$ANDROID_SDK_PACKAGE_INSTALL_TIMEOUT" \
+                    /opt/android-sdk/cmdline-tools/latest/bin/sdkmanager "$package"; then \
+                    installed=true; \
+                    break; \
+                fi; \
+                echo "Android SDK package ${package} failed on attempt ${attempt}; retrying." >&2; \
+                sleep 5; \
+            done; \
+            [ "$installed" = true ] || { echo "Android SDK package ${package} failed after 3 attempts." >&2; exit 1; }; \
         done; \
         chmod -R 775 /opt/android-sdk; \
     else \
