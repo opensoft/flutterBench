@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1.7
-# Version: 1.0.9
+# Version: 1.0.10
 # Layer 2: Flutter Bench Image
 # Extends Layer 1 (dev-bench-base) with Flutter-specific tools
 # Includes: Flutter SDK, Android SDK, Dart tools, mobile dev tools
@@ -88,7 +88,8 @@ RUN --mount=type=cache,target=/var/cache/android-sdk-downloads,sharing=locked se
     chmod -R 775 /opt/android-sdk
 
 ARG INSTALL_ANDROID_SDK_PACKAGES=true
-ARG ANDROID_SDK_PACKAGE_INSTALL_TIMEOUT=600
+ARG ANDROID_SDK_PACKAGE_INSTALL_TIMEOUT=3600
+ARG ANDROID_SDK_PACKAGE_INSTALL_ATTEMPTS=2
 RUN if [ "$INSTALL_ANDROID_SDK_PACKAGES" = "true" ]; then \
         set -eux; \
         yes | /opt/android-sdk/cmdline-tools/latest/bin/sdkmanager --licenses; \
@@ -108,7 +109,7 @@ RUN if [ "$INSTALL_ANDROID_SDK_PACKAGES" = "true" ]; then \
             "platforms;android-36" \
             "system-images;android-34;google_apis;x86_64"; do \
             installed=false; \
-            for attempt in 1 2 3; do \
+            for attempt in $(seq 1 "$ANDROID_SDK_PACKAGE_INSTALL_ATTEMPTS"); do \
                 if timeout "$ANDROID_SDK_PACKAGE_INSTALL_TIMEOUT" \
                     /opt/android-sdk/cmdline-tools/latest/bin/sdkmanager "$package"; then \
                     installed=true; \
@@ -117,7 +118,7 @@ RUN if [ "$INSTALL_ANDROID_SDK_PACKAGES" = "true" ]; then \
                 echo "Android SDK package ${package} failed on attempt ${attempt}; retrying." >&2; \
                 sleep 5; \
             done; \
-            [ "$installed" = true ] || { echo "Android SDK package ${package} failed after 3 attempts." >&2; exit 1; }; \
+            [ "$installed" = true ] || { echo "Android SDK package ${package} failed after ${ANDROID_SDK_PACKAGE_INSTALL_ATTEMPTS} attempts." >&2; exit 1; }; \
         done; \
         chmod -R 775 /opt/android-sdk; \
     else \
