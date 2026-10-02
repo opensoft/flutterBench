@@ -59,6 +59,7 @@
     },
     "containerEnv": {
         "SHELL": "/bin/zsh",
+        "HISTFILE": "/home/${localEnv:USER}/.workbenches-history/.zsh_history",
         "FLUTTER_ROOT": "/opt/flutter",
         "ANDROID_SDK_ROOT": "/opt/android-sdk",
         "ANDROID_HOME": "/opt/android-sdk",
@@ -70,7 +71,7 @@
     "workspaceFolder": "/workspace",
     "mounts": [
         "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached",
-        "source=flutterbench-zshhistory,target=/home/${localEnv:USER}/.zsh_history,type=volume",
+        "source=flutterbench-zshhistory,target=/home/${localEnv:USER}/.workbenches-history,type=volume",
         "source=${localEnv:HOME}/projects,target=/workspace/projects,type=bind",
 
         // Shell configurations
