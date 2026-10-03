@@ -5,7 +5,9 @@ services:
     env_file: .env
     image: flutter-bench:${USER:-brett}
     container_name: flutter-bench
-    command: sleep infinity
+    command: ["/bin/bash", "-c", 'sudo install -d -m 0700 -o "$$(id -u)" -g "$$(id -g)" "$$HOME/.workbenches-history" && if [ -f "$$HOME/.workbenches-history/.zsh_history" ]; then sudo chown "$$(id -u):$$(id -g)" "$$HOME/.workbenches-history/.zsh_history"; fi && exec sleep infinity']
+    volumes:
+      - flutterbench-zshhistory:/home/${USER:-brett}/.workbenches-history
     working_dir: /workspace
     tty: true
     privileged: true
@@ -14,6 +16,7 @@ services:
     security_opt:
       - seccomp:unconfined
     environment:
+      - HISTFILE=/home/${USER:-brett}/.workbenches-history/.zsh_history
       - DOCKER_HOST=unix:///var/run/docker.sock
       - FLUTTER_ROOT=/opt/flutter
       - ANDROID_SDK_ROOT=/opt/android-sdk
@@ -21,6 +24,11 @@ services:
       - ADB_SERVER_SOCKET=tcp:host.docker.internal:5037
     networks:
       - flutter-bench-net
+
+volumes:
+  flutterbench-zshhistory:
+    # Retain the existing Compose volume; override for a legacy engine name.
+    name: ${WORKBENCH_HISTORY_VOLUME:-dev-benches_flutterbench-zshhistory}
 
 networks:
   flutter-bench-net:
