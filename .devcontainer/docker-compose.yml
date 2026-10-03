@@ -27,6 +27,8 @@ services:
 
 volumes:
   flutterbench-zshhistory:
+    # Retain the existing Compose volume; override for a legacy engine name.
+    name: ${WORKBENCH_HISTORY_VOLUME:-dev-benches_flutterbench-zshhistory}
 
 networks:
   flutter-bench-net:
