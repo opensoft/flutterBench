@@ -10,7 +10,7 @@ FROM ${BASE_IMAGE}
 # Container version labels
 LABEL layer="2"
 LABEL layer.name="flutter-bench"
-LABEL layer.version="1.0.9"
+LABEL layer.version="1.0.10"
 LABEL layer.description="Flutter and mobile development tools"
 LABEL bench.type="flutter"
 
@@ -115,8 +115,10 @@ RUN if [ "$INSTALL_ANDROID_SDK_PACKAGES" = "true" ]; then \
                     installed=true; \
                     break; \
                 fi; \
-                echo "Android SDK package ${package} failed on attempt ${attempt}; retrying." >&2; \
-                sleep 5; \
+                if [ "$attempt" -lt "$ANDROID_SDK_PACKAGE_INSTALL_ATTEMPTS" ]; then \
+                    echo "Android SDK package ${package} failed on attempt ${attempt}; retrying." >&2; \
+                    sleep 5; \
+                fi; \
             done; \
             [ "$installed" = true ] || { echo "Android SDK package ${package} failed after ${ANDROID_SDK_PACKAGE_INSTALL_ATTEMPTS} attempts." >&2; exit 1; }; \
         done; \
