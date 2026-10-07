@@ -11,6 +11,7 @@ name: ${COMPOSE_PROJECT_NAME:-flutter}
 
 services:
   app:
+    init: true
     build:
       context: .
       dockerfile: Dockerfile

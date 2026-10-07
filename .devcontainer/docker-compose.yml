@@ -2,6 +2,7 @@ name: dev-benches
 
 services:
   flutter-bench:
+    init: true
     env_file: .env
     image: flutter-bench:${USER:-brett}
     container_name: flutter-bench
