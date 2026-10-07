@@ -29,6 +29,7 @@ services:
 
   # DartWing App Container - connects to ADB service
   app:
+    init: true
     container_name: dartwing_app
     build:
       context: .

@@ -1,5 +1,13 @@
 # 🚀 FlutterBench - Flutter Development Environment
 
+## Compose runtime requirement
+
+Use the supported Docker Compose plugin (`docker compose`, version 2 or newer).
+Bench services enable `init: true` to reap orphaned helpers. Legacy Compose v1
+installations are not supported; a compatibility `docker-compose` command must
+invoke the current plugin. This is a container-creation setting: image rebuilds
+and container restarts do not retrofit it into an existing container.
+
 A comprehensive Flutter development environment with DevContainer templates and project creation tools.
 
 ## 🧱 Container Architecture (Layered)
